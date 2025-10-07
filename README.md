@@ -1,0 +1,2 @@
+# ohos binding for zig
+
