@@ -49,6 +49,7 @@ pub fn build(b: *std.Build) !void {
             .optimize = optimize,
         });
         arm64.root_module.addImport("hilog", ohos_binding.module("hilog"));
+        arm64.root_module.addImport("ability_access_control", ohos_binding.module("ability_access_control"));
     }
     // repeat for arm / x64 as needed
 }
@@ -58,9 +59,11 @@ In application code:
 
 ```zig
 const hilog = @import("hilog");
+const ability_access_control = @import("ability_access_control");
 
 pub fn main() void {
     hilog.info("hello from zig");
+    _ = ability_access_control.checkSelfPermission("ohos.permission.INTERNET");
 }
 ```
 
@@ -68,10 +71,10 @@ pub fn main() void {
 
 Configure the OpenHarmony NDK via environment variables (see [docs/editor-setup.md](docs/editor-setup.md)):
 
-- `OHOS_NDK_HOME` — SDK root or native SDK directory
-- `OHOS_SDK_HOME` — same as above
+- `OHOS_NDK_HOME` — native SDK directory, for example `/path/to/ohos-sdk/native`
+- `OHOS_SDK_HOME` — SDK root, used by `zig build` as a fallback
 
-For VSCode/Zed C header indexing, set `OHOS_NDK_HOME` to the native SDK directory. The committed `.vscode/settings.json` and `.zed/settings.json` use that variable for C/C++ include paths.
+VSCode/Zed C header indexing uses `OHOS_NDK_HOME`; set it to the native SDK directory before opening the editor.
 
 ## Demo
 
@@ -83,3 +86,8 @@ zig build -Dtarget=aarch64-linux-ohos -Doptimize=ReleaseSafe
 ```
 
 The output is installed under `examples/basic/zig-out/lib/`.
+
+
+## LICENSE
+
+[MIT](./LICENSE)

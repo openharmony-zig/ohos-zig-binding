@@ -20,6 +20,8 @@ src/
 
 Sys bindings are **not** committed. `src/build/modules.zig` creates `<module>_sys` via `addTranslateC` at build time and attaches the required OpenHarmony system library to the wrapper module.
 
+Use `ffi.h` for the local C entry point instead of mirroring the NDK header name. For example, do not create `src/hilog/log.h` that includes `<hilog/log.h>`, because C/C++ indexers may resolve the include back to the local file and report a self-include.
+
 ## Steps
 
 ### 1. Create module source
@@ -27,6 +29,8 @@ Sys bindings are **not** committed. `src/build/modules.zig` creates `<module>_sy
 `src/foo/ffi.h`:
 
 ```c
+#pragma once
+
 #include <path/to/ndk_header.h>
 ```
 
@@ -69,5 +73,6 @@ Add an entry to `src/build/modules.zig`:
 ## Checklist
 
 - [ ] `src/<module>/ffi.h` and `src/<module>/<module>.zig`
+- [ ] Local C header is not named the same as the NDK header it includes
 - [ ] Register binding metadata in `src/build/modules.zig`
 - [ ] `zig build` passes with NDK configured
