@@ -1,15 +1,16 @@
 .{
     .name = .ohos_zig_binding,
     .version = "0.0.1-beta.0",
-    .minimum_zig_version = "0.15.1",
+    .minimum_zig_version = "0.16.0",
     .fingerprint = 0xe7e06f544a98d2e,
-    .dependencies = .{ .@"zig-napi" = .{ .url = "https://github.com/openharmony-zig/zig-addon/archive/refs/tags/0.0.1-beta.2.tar.gz", .hash = "zig_napi-0.0.1-beta.2-H6OwawaxAgDMitwMH0m5ZJZoIpdc5LU2C34P_msTfEQo" } },
+    .dependencies = .{},
     .paths = .{
         "build.zig",
         "build.zig.zon",
         "src",
-        "build",
         "LICENSE",
         "README.md",
+        "docs",
+        "examples",
     },
 }

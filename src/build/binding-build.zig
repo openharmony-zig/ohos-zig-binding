@@ -1,8 +1,11 @@
 const std = @import("std");
 
-/// This function is used to build the binding for the module.
-pub fn build(compiler: *std.Build.Step.Compile, module: []const u8) !void {
-    if (std.mem.eql(u8, module, "hilog")) {
-        compiler.root_module.linkSystemLibrary("hilog_ndk.z", .{});
-    }
+const registry = @import("modules.zig");
+
+pub fn addModules(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) !void {
+    try registry.addAll(b, target, optimize);
 }

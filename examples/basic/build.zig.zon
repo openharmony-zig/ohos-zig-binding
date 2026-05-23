@@ -1,0 +1,16 @@
+.{
+    .name = .ohos_binding_basic_demo,
+    .version = "0.0.0",
+    .minimum_zig_version = "0.16.0",
+    .fingerprint = 0x8b9e178a75a9fc65,
+    .dependencies = .{
+        .ohos_zig_binding = .{
+            .path = "../..",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}

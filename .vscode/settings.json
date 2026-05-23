@@ -1,0 +1,14 @@
+{
+  "C_Cpp.default.compilerPath": "${env:OHOS_NDK_HOME}/llvm/bin/aarch64-unknown-linux-ohos-clang",
+  "C_Cpp.default.intelliSenseMode": "linux-clang-arm64",
+  "C_Cpp.default.includePath": [
+    "${env:OHOS_NDK_HOME}/sysroot/usr/include",
+    "${env:OHOS_NDK_HOME}/sysroot/usr/include/aarch64-linux-ohos",
+    "${workspaceFolder}/src"
+  ],
+  "C_Cpp.default.browse.path": [
+    "${env:OHOS_NDK_HOME}/sysroot/usr/include",
+    "${env:OHOS_NDK_HOME}/sysroot/usr/include/aarch64-linux-ohos",
+    "${workspaceFolder}/src"
+  ]
+}
