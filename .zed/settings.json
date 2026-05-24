@@ -1,0 +1,18 @@
+{
+  "lsp": {
+    "clangd": {
+      "initialization_options": {
+        "fallbackFlags": [
+          "--target=aarch64-linux-ohos",
+          "--sysroot=$OHOS_NDK_HOME/sysroot",
+          "-isystem",
+          "$OHOS_NDK_HOME/sysroot/usr/include",
+          "-isystem",
+          "$OHOS_NDK_HOME/sysroot/usr/include/aarch64-linux-ohos",
+          "-I",
+          "src"
+        ]
+      }
+    }
+  }
+}
