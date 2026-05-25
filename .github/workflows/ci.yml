@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Zig
+        uses: openharmony-zig/setup-zig-ohos@v0.1.0
+        with:
+          tag: '0.16.0'
+
+      - name: Check Zig syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            zig ast-check "$file"
+          done < <(git ls-files -z '*.zig')
+          while IFS= read -r -d '' file; do
+            zig ast-check --zon "$file"
+          done < <(git ls-files -z '*.zon')
+
+      - name: Check formatting
+        shell: bash
+        run: |
+          set -euo pipefail
+          git ls-files -z '*.zig' '*.zon' | xargs -0 zig fmt
+          git diff --exit-code
+
+  ohos-build:
+    runs-on: ubuntu-latest
+    name: Build for OpenHarmony
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup OpenHarmony SDK
+        uses: openharmony-rs/setup-ohos-sdk@v0.2
+        with:
+          version: '5.0.0'
+
+      - name: Setup Zig for OpenHarmony
+        uses: openharmony-zig/setup-zig-ohos@v0.1.0
+        with:
+          tag: '0.16.0'
+
+      - name: Validate OpenHarmony NDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_home="${OHOS_NDK_HOME:-${OHOS_SDK_HOME:-}}"
+          test -n "$sdk_home"
+          test -d "$sdk_home/sysroot/usr/include" || test -d "$sdk_home/native/sysroot/usr/include"
+
+      - name: Build root package
+        run: zig build -Dtarget=aarch64-linux-ohos -Doptimize=ReleaseSafe --summary all
+
+      - name: Build examples/basic
+        working-directory: examples/basic
+        run: zig build -Dtarget=aarch64-linux-ohos -Doptimize=ReleaseSafe --summary all
