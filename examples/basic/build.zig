@@ -1,4 +1,5 @@
 const std = @import("std");
+const napi_build = @import("zig-napi").napi_build;
 
 const default_ohos_target: std.Target.Query = .{
     .cpu_arch = .aarch64,
@@ -6,28 +7,52 @@ const default_ohos_target: std.Target.Query = .{
     .abi = .ohos,
 };
 
-pub fn build(b: *std.Build) void {
+pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{ .default_target = default_ohos_target });
     const optimize = b.standardOptimizeOption(.{});
 
-    const ohos_binding = b.dependency("ohos_zig_binding", .{
-        .target = target,
-        .optimize = optimize,
-    });
+    const zig_napi = b.dependency("zig-napi", .{});
+    const napi = zig_napi.module("napi");
 
-    const demo = b.addLibrary(.{
+    const result = try napi_build.nativeAddonBuild(b, .{
         .name = "ohos_binding_basic_demo",
-        .linkage = .dynamic,
-        .root_module = b.createModule(.{
+        .root_module_options = .{
             .root_source_file = b.path("src/demo.zig"),
             .target = target,
             .optimize = optimize,
-            .imports = &.{
-                .{ .name = "hilog", .module = ohos_binding.module("hilog") },
-                .{ .name = "ability_access_control", .module = ohos_binding.module("ability_access_control") },
-            },
-        }),
+        },
     });
 
-    b.installArtifact(demo);
+    if (result.arm64) |arm64| {
+        addImports(b, optimize, arm64.root_module, napi);
+    }
+    if (result.arm) |arm| {
+        addImports(b, optimize, arm.root_module, napi);
+    }
+    if (result.x64) |x64| {
+        addImports(b, optimize, x64.root_module, napi);
+    }
+
+    const dts = try napi_build.generateTypeDefinition(b, .{
+        .root_source_file = b.path("src/demo.zig"),
+        .output = b.path("index.d.ts"),
+        .napi_module = napi,
+    });
+    b.getInstallStep().dependOn(&dts.step);
+}
+
+fn addImports(
+    b: *std.Build,
+    optimize: std.builtin.OptimizeMode,
+    root_module: *std.Build.Module,
+    napi: *std.Build.Module,
+) void {
+    const ohos_binding = b.dependency("ohos_zig_binding", .{
+        .target = root_module.resolved_target.?,
+        .optimize = optimize,
+    });
+
+    root_module.addImport("napi", napi);
+    root_module.addImport("hilog", ohos_binding.module("hilog"));
+    root_module.addImport("ability_access_control", ohos_binding.module("ability_access_control"));
 }
