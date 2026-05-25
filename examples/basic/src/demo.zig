@@ -39,8 +39,6 @@ pub fn forward_stdio_to_hilog() bool {
 
 pub fn configure_hilog() void {
     hilog.clearCallback();
-    hilog.setMinLogLevel(.debug);
-    hilog.setLogLevel(.debug, .prefer_open_log);
 }
 
 pub fn check_self_permission(permission: []u8) bool {

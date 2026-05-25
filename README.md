@@ -36,9 +36,11 @@ In `build.zig`:
 ```zig
 const std = @import("std");
 const napi_build = @import("zig-napi").napi_build;
+const ohos_binding_build = @import("ohos_zig_binding").binding_build;
 
 pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
+    const api = ohos_binding_build.apiOption(b) orelse ohos_binding_build.default_api;
 
     const zig_napi = b.dependency("zig-napi", .{});
     const napi = zig_napi.module("napi");
@@ -55,6 +57,7 @@ pub fn build(b: *std.Build) !void {
         const ohos_binding = b.dependency("ohos_zig_binding", .{
             .target = arm64.root_module.resolved_target.?,
             .optimize = optimize,
+            .api = api,
         });
         arm64.root_module.addImport("hilog", ohos_binding.module("hilog"));
         arm64.root_module.addImport("ability_access_control", ohos_binding.module("ability_access_control"));
@@ -93,7 +96,20 @@ comptime {
 
 ## Environment
 
-Configure the OpenHarmony NDK via environment variables (see [docs/editor-setup.md](docs/editor-setup.md)):
+Configure the OpenHarmony NDK via environment variables (see [docs/editor-setup.md](docs/editor-setup.md)).
+Pass `-Dapi=<level>` to control the OpenHarmony API level used by Zig wrapper guards. You can also set `.api = 12` directly in `build.zig`; the module registry default is `12`.
+
+To lock the binding API level in `build.zig`, pass a literal instead of the command-line value:
+
+```zig
+const ohos_binding = b.dependency("ohos_zig_binding", .{
+    .target = root_module.resolved_target.?,
+    .optimize = optimize,
+    .api = 12,
+});
+```
+
+API 12 is the wrapper baseline. Wrapper APIs introduced in 12 or lower do not need guards. Wrapper functions that require a newer OpenHarmony API start with a compile-time guard in the Zig adapter. For example, if the binding is built with `-Dapi=12`, calling `hilog.setMinLogLevel` fails at compile time because that API was introduced in 15. The public wrapper does not expose separate `supports_*` checks; select the API level in the build and keep higher-API calls in code that is only compiled for that level.
 
 - `OHOS_NDK_HOME` — native SDK directory, for example `/path/to/ohos-sdk/native`
 - `OHOS_SDK_HOME` — SDK root, used by `zig build` as a fallback
@@ -106,7 +122,7 @@ VSCode/Zed C header indexing uses `OHOS_NDK_HOME`; set it to the native SDK dire
 
 ```sh
 cd examples/basic
-zig build -Dtarget=aarch64-linux-ohos -Doptimize=ReleaseSafe
+zig build -Dtarget=aarch64-linux-ohos -Doptimize=ReleaseSafe -Dapi=12
 ```
 
 The native addon is installed under `examples/basic/zig-out/`, and the generated TypeScript declarations are written to `examples/basic/index.d.ts`.
