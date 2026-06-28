@@ -11,5 +11,6 @@ const default_ohos_target: std.Target.Query = .{
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{ .default_target = default_ohos_target });
     const optimize = b.standardOptimizeOption(.{});
-    try binding_build.addModules(b, target, optimize);
+    const api = binding_build.apiOption(b) orelse binding_build.default_api;
+    try binding_build.addModules(b, target, optimize, .{ .api = api });
 }

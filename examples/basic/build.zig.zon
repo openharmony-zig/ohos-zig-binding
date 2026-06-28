@@ -7,10 +7,15 @@
         .ohos_zig_binding = .{
             .path = "../..",
         },
+        .@"zig-napi" = .{
+            .url = "https://github.com/openharmony-zig/zig-napi/archive/refs/tags/0.1.0.tar.gz",
+            .hash = "zig_napi-0.1.0-H6Owa7sDBgBLhd-ooFFJIqt3CAGATY4sIYHopmSYkRDP",
+        },
     },
     .paths = .{
         "build.zig",
         "build.zig.zon",
+        "index.d.ts",
         "src",
     },
 }

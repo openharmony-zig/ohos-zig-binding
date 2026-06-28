@@ -69,8 +69,8 @@ jobs:
           test -d "$sdk_home/sysroot/usr/include" || test -d "$sdk_home/native/sysroot/usr/include"
 
       - name: Build root package
-        run: zig build -Dtarget=aarch64-linux-ohos -Doptimize=ReleaseSafe --summary all
+        run: zig build -Dtarget=aarch64-linux-ohos -Doptimize=ReleaseSafe -Dapi=12 --summary all
 
       - name: Build examples/basic
         working-directory: examples/basic
-        run: zig build -Dtarget=aarch64-linux-ohos -Doptimize=ReleaseSafe --summary all
+        run: zig build -Dtarget=aarch64-linux-ohos -Doptimize=ReleaseSafe -Dapi=12 --summary all
