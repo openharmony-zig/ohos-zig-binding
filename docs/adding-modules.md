@@ -18,7 +18,7 @@ src/
     └── <module>.zig          # Zig wrapper (@import("<module>_sys"))
 ```
 
-Sys bindings are **not** committed. `src/build/modules.zig` creates `<module>_sys` via `addTranslateC` at build time and attaches the required OpenHarmony system library to the wrapper module.
+Sys bindings are **not** committed. `src/build/modules.zig` creates `<module>_sys` via `addTranslateC` at build time and attaches the required OpenHarmony system libraries to the wrapper module. The package's default build also compiles every registered wrapper as a cross-target test artifact, so new declarations cannot remain completely unchecked through Zig's lazy analysis.
 
 Use `ffi.h` for the local C entry point instead of mirroring the NDK header name. For example, do not create `src/hilog/log.h` that includes `<hilog/log.h>`, because C/C++ indexers may resolve the include back to the local file and report a self-include.
 
@@ -86,7 +86,7 @@ Add an entry to `src/build/modules.zig`:
     .root_source_file = "src/foo/foo.zig",
     .header = "src/foo/ffi.h",
     .sys_import = "foo_sys",
-    .system_library = "foo_ndk.z",
+    .system_libraries = &.{"foo_ndk.z"},
     .default_api = 12,
 },
 ```
@@ -101,7 +101,8 @@ Add an entry to `src/build/modules.zig`:
 | `root_source_file` | Public Zig wrapper module |
 | `header` | C header used by `addTranslateC` |
 | `sys_import` | Import name used by the wrapper module |
-| `system_library` | OpenHarmony system library linked transitively through the module graph |
+| `system_libraries` | OpenHarmony system libraries linked transitively through the module graph |
+| `supports_napi` | Whether the module receives the optional zig-napi import and N-API link library when `xcomponent_napi` is enabled |
 | `default_api` | Default API level used by wrapper guards when the caller does not pass `.api` or `-Dapi` |
 
 ## Checklist

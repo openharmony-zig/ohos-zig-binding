@@ -8,12 +8,14 @@ const Binding = struct {
     root_source_file: []const u8,
     header: []const u8,
     sys_import: []const u8,
-    system_library: []const u8,
+    system_libraries: []const []const u8,
+    supports_napi: bool = false,
     default_api: ?u32 = null,
 };
 
 pub const AddAllOptions = struct {
     api: ?u32 = null,
+    xcomponent_napi: bool = false,
 };
 
 pub const items = [_]Binding{
@@ -22,7 +24,7 @@ pub const items = [_]Binding{
         .root_source_file = "src/hilog/log.zig",
         .header = "src/hilog/ffi.h",
         .sys_import = "hilog_sys",
-        .system_library = "hilog_ndk.z",
+        .system_libraries = &.{"hilog_ndk.z"},
         .default_api = 12,
     },
     .{
@@ -30,7 +32,24 @@ pub const items = [_]Binding{
         .root_source_file = "src/ability_access_control/ability_access_control.zig",
         .header = "src/ability_access_control/ffi.h",
         .sys_import = "ability_access_control_sys",
-        .system_library = "ability_access_control",
+        .system_libraries = &.{"ability_access_control"},
+        .default_api = 12,
+    },
+    .{
+        .name = "native_window",
+        .root_source_file = "src/native_window/native_window.zig",
+        .header = "src/native_window/ffi.h",
+        .sys_import = "native_window_sys",
+        .system_libraries = &.{ "native_window", "native_buffer" },
+        .default_api = 12,
+    },
+    .{
+        .name = "xcomponent",
+        .root_source_file = "src/xcomponent/xcomponent.zig",
+        .header = "src/xcomponent/ffi.h",
+        .sys_import = "xcomponent_sys",
+        .system_libraries = &.{"ace_ndk.z"},
+        .supports_napi = true,
         .default_api = 12,
     },
 };
@@ -43,8 +62,28 @@ pub fn addAll(
 ) !void {
     const api = effectiveApi(options);
     const api_support = addApiSupportModule(b, target, optimize, api);
+    const feature_support = addFeatureSupportModule(
+        b,
+        target,
+        optimize,
+        options.xcomponent_napi,
+    );
+    const napi_module = if (options.xcomponent_napi)
+        (b.lazyDependency("zig-napi", .{}) orelse return).module("napi")
+    else
+        null;
+
     for (items) |binding| {
-        try addModule(b, target, optimize, api_support, binding);
+        try addModule(
+            b,
+            target,
+            optimize,
+            api_support,
+            feature_support,
+            napi_module,
+            options.xcomponent_napi,
+            binding,
+        );
     }
 }
 
@@ -53,12 +92,16 @@ fn addModule(
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
     api_support: *std.Build.Module,
+    feature_support: *std.Build.Module,
+    napi_module: ?*std.Build.Module,
+    xcomponent_napi: bool,
     binding: Binding,
 ) !void {
     const sys = try translateHeader(b, target, optimize, binding.sys_import, binding.header);
     const imports = [_]std.Build.Module.Import{
         .{ .name = binding.sys_import, .module = sys },
         .{ .name = "ohos_zig_binding_api", .module = api_support },
+        .{ .name = "ohos_zig_binding_features", .module = feature_support },
     };
 
     const public = b.addModule(binding.name, .{
@@ -67,7 +110,35 @@ fn addModule(
         .optimize = optimize,
         .imports = &imports,
     });
-    try ndk.configureModuleLink(b, public, target.result, binding.system_library);
+    for (binding.system_libraries) |library| {
+        try ndk.configureModuleLink(b, public, target.result, library);
+    }
+    if (binding.supports_napi and xcomponent_napi) {
+        public.addImport("xcomponent_napi", napi_module.?);
+        try ndk.configureModuleLink(b, public, target.result, "ace_napi.z");
+    }
+
+    const check = b.addTest(.{
+        .name = b.fmt("{s}-check", .{binding.name}),
+        .root_module = public,
+    });
+    b.getInstallStep().dependOn(&check.step);
+}
+
+fn addFeatureSupportModule(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    xcomponent_napi: bool,
+) *std.Build.Module {
+    const feature_options = b.addOptions();
+    feature_options.addOption(bool, "xcomponent_napi", xcomponent_napi);
+
+    return b.createModule(.{
+        .root_source_file = feature_options.getOutput(),
+        .target = target,
+        .optimize = optimize,
+    });
 }
 
 fn addApiSupportModule(

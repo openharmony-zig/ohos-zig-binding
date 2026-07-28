@@ -12,5 +12,9 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{ .default_target = default_ohos_target });
     const optimize = b.standardOptimizeOption(.{});
     const api = binding_build.apiOption(b) orelse binding_build.default_api;
-    try binding_build.addModules(b, target, optimize, .{ .api = api });
+    const xcomponent_napi = binding_build.xcomponentNapiOption(b) orelse false;
+    try binding_build.addModules(b, target, optimize, .{
+        .api = api,
+        .xcomponent_napi = xcomponent_napi,
+    });
 }

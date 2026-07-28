@@ -14,6 +14,13 @@ See [docs/editor-setup.md](docs/editor-setup.md) to configure the OpenHarmony SD
 |--------|-------------|
 | `hilog` | HiLog logging binding |
 | `ability_access_control` | Ability access control (permission check) binding |
+| `native_window` | Referenced native-window handle and safe request/map/flush buffer flow |
+| `xcomponent` | Native XComponent initialization, geometry, event data, and callbacks |
+
+The `native_window` and `xcomponent` wrappers follow the public range and
+single-instance callback limitations of `ohos-native-bindings`. See
+[native-window and XComponent](docs/native-window-xcomponent.md) for the exact
+scope and lifecycle rules.
 
 ## Usage
 
@@ -58,11 +65,47 @@ pub fn build(b: *std.Build) !void {
             .target = arm64.root_module.resolved_target.?,
             .optimize = optimize,
             .api = api,
+            // Optional: use zig-napi Env/Object in xcomponent.XComponent.init.
+            .xcomponent_napi = true,
         });
         arm64.root_module.addImport("hilog", ohos_binding.module("hilog"));
         arm64.root_module.addImport("ability_access_control", ohos_binding.module("ability_access_control"));
+        arm64.root_module.addImport("native_window", ohos_binding.module("native_window"));
+        arm64.root_module.addImport("xcomponent", ohos_binding.module("xcomponent"));
     }
     // repeat for arm / x64 as needed
+}
+```
+
+`xcomponent_napi` is a build-function feature switch. It defaults to `false`,
+so applications that only use `XComponent.fromRaw` do not download zig-napi or
+link `ace_napi.z`. Set it to `true` in the `b.dependency` call above when the
+application already uses zig-napi.
+
+With the feature enabled, initialize the non-owning wrapper directly from
+zig-napi's environment and exports definitions:
+
+```zig
+const napi = @import("napi");
+const xcomponent = @import("xcomponent");
+
+pub fn initXComponent(env: napi.Env, exports: napi.Object) !void {
+    const component = try xcomponent.XComponent.init(env, exports);
+    try component.registerCallbacks(.{
+        .on_surface_created = onSurfaceCreated,
+    });
+}
+
+fn onSurfaceCreated(
+    context: ?*anyopaque,
+    component: xcomponent.XComponentRaw,
+    window: xcomponent.WindowRaw,
+) void {
+    _ = context;
+    _ = component;
+
+    // Acquire an owning window reference if the handle must escape this callback.
+    _ = window;
 }
 ```
 

@@ -54,9 +54,28 @@ fn addImports(
         .target = root_module.resolved_target.?,
         .optimize = optimize,
         .api = api,
+        .xcomponent_napi = true,
     });
 
     root_module.addImport("napi", napi);
     root_module.addImport("hilog", ohos_binding.module("hilog"));
     root_module.addImport("ability_access_control", ohos_binding.module("ability_access_control"));
+
+    const xcomponent = ohos_binding.module("xcomponent");
+    root_module.addImport("xcomponent", xcomponent);
+
+    const xcomponent_check_module = b.createModule(.{
+        .root_source_file = b.path("src/xcomponent_compile_check.zig"),
+        .target = root_module.resolved_target.?,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "napi", .module = napi },
+            .{ .name = "xcomponent", .module = xcomponent },
+        },
+    });
+    const xcomponent_check = b.addTest(.{
+        .name = "xcomponent-napi-check",
+        .root_module = xcomponent_check_module,
+    });
+    b.getInstallStep().dependOn(&xcomponent_check.step);
 }
