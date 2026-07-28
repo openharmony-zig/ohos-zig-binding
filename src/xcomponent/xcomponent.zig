@@ -3,10 +3,10 @@ const features = @import("ohos_zig_binding_features");
 
 pub const raw = @import("xcomponent_sys");
 pub const types = @import("types.zig");
-const napi_integration = if (features.xcomponent_napi)
-    @import("napi_enabled.zig")
+const napi = if (features.xcomponent_napi)
+    @import("xcomponent_napi")
 else
-    @import("napi_disabled.zig");
+    struct {};
 
 pub const ResultCode = types.ResultCode;
 pub const Action = types.Action;
@@ -35,8 +35,8 @@ pub const XComponentError = error{
     MultiComponentCallbacksUnsupported,
 };
 
-pub const Env = napi_integration.Env;
-pub const Object = napi_integration.Object;
+pub const Env = if (features.xcomponent_napi) napi.Env else void;
+pub const Object = if (features.xcomponent_napi) napi.Object else void;
 pub const UIInputEventRaw = *raw.ArkUI_UIInputEvent;
 
 /// Raw native-window handle supplied by an XComponent callback.
@@ -193,9 +193,46 @@ pub const NativeXComponent = struct {
         return .{ .component = try .init(component) };
     }
 
-    /// Resolves `__NATIVE_XCOMPONENT_OBJ__` from N-API exports and unwraps it.
-    pub fn init(env: Env, exports: Object) XComponentError!NativeXComponent {
-        return fromRaw(try napi_integration.unwrap(env, exports));
+    /// Resolves `__NATIVE_XCOMPONENT_OBJ__` from zig-napi exports.
+    ///
+    /// Requires the `xcomponent_napi` build feature. The generic parameters
+    /// deliberately defer zig-napi type checking until this function is used,
+    /// so the core module remains importable while the feature is disabled.
+    pub fn init(env: anytype, exports: anytype) XComponentError!NativeXComponent {
+        if (features.xcomponent_napi) {
+            comptime {
+                if (@TypeOf(env) != napi.Env or @TypeOf(exports) != napi.Object) {
+                    @compileError(
+                        "xcomponent.XComponent.init expects zig-napi Env and Object values",
+                    );
+                }
+            }
+
+            const sys = napi.napi_sys.napi_sys;
+            const native_xcomponent_object_name: [*:0]const u8 =
+                "__NATIVE_XCOMPONENT_OBJ__";
+
+            var exported_component: sys.napi_value = undefined;
+            if (sys.napi_get_named_property(
+                env.raw,
+                exports.raw,
+                native_xcomponent_object_name,
+                &exported_component,
+            ) != sys.napi_ok) {
+                return error.NapiCallFailed;
+            }
+
+            var instance: ?*anyopaque = null;
+            if (sys.napi_unwrap(env.raw, exported_component, &instance) != sys.napi_ok) {
+                return error.NapiCallFailed;
+            }
+            return fromRaw(@ptrCast(instance orelse return error.InvalidComponent));
+        } else {
+            @compileError(
+                "xcomponent N-API integration is disabled; pass " ++
+                    ".xcomponent_napi = true to the ohos_zig_binding dependency",
+            );
+        }
     }
 
     pub fn rawHandle(self: NativeXComponent) *raw.OH_NativeXComponent {
@@ -694,7 +731,4 @@ fn onUIInputEvent(
 
 test {
     std.testing.refAllDecls(@This());
-    if (features.xcomponent_napi) {
-        std.testing.refAllDecls(napi_integration);
-    }
 }
