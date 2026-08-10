@@ -18,6 +18,11 @@ src/
     └── <module>.zig          # Zig wrapper (@import("<module>_sys"))
 ```
 
+Modules backed by stable libc/kernel ABIs (for example `ashmem`) may register
+an empty `system_libraries` list. Their `ffi.h` should still be translated with
+the selected OpenHarmony sysroot so constants and syscall signatures match the
+target ABI.
+
 Sys bindings are **not** committed. `src/build/modules.zig` creates `<module>_sys` via `addTranslateC` at build time and attaches the required OpenHarmony system libraries to the wrapper module. The package's default build also compiles every registered wrapper as a cross-target test artifact, so new declarations cannot remain completely unchecked through Zig's lazy analysis.
 
 Use `ffi.h` for the local C entry point instead of mirroring the NDK header name. For example, do not create `src/hilog/log.h` that includes `<hilog/log.h>`, because C/C++ indexers may resolve the include back to the local file and report a self-include.

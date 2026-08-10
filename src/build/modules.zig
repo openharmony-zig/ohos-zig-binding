@@ -20,6 +20,14 @@ pub const AddAllOptions = struct {
 
 pub const items = [_]Binding{
     .{
+        .name = "ashmem",
+        .root_source_file = "src/ashmem/ashmem.zig",
+        .header = "src/ashmem/ffi.h",
+        .sys_import = "ashmem_sys",
+        .system_libraries = &.{},
+        .default_api = 12,
+    },
+    .{
         .name = "hilog",
         .root_source_file = "src/hilog/log.zig",
         .header = "src/hilog/ffi.h",
