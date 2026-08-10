@@ -12,6 +12,7 @@ See [docs/editor-setup.md](docs/editor-setup.md) to configure the OpenHarmony SD
 
 | Module | Description |
 |--------|-------------|
+| `ashmem` | Owned ashmem descriptors, safe create/attach/map/unmap, and checked byte access |
 | `hilog` | HiLog logging binding |
 | `ability_access_control` | Ability access control (permission check) binding |
 | `native_window` | Referenced native-window handle and safe request/map/flush buffer flow |
@@ -69,6 +70,7 @@ pub fn build(b: *std.Build) !void {
             .xcomponent_napi = true,
         });
         arm64.root_module.addImport("hilog", ohos_binding.module("hilog"));
+        arm64.root_module.addImport("ashmem", ohos_binding.module("ashmem"));
         arm64.root_module.addImport("ability_access_control", ohos_binding.module("ability_access_control"));
         arm64.root_module.addImport("native_window", ohos_binding.module("native_window"));
         arm64.root_module.addImport("xcomponent", ohos_binding.module("xcomponent"));
@@ -114,6 +116,7 @@ In application code:
 ```zig
 const std = @import("std");
 const napi = @import("napi");
+const ashmem = @import("ashmem");
 const hilog = @import("hilog");
 const ability_access_control = @import("ability_access_control");
 
@@ -130,6 +133,14 @@ pub fn init_demo() bool {
     } else |_| {}
 
     return ability_access_control.checkSelfPermission("ohos.permission.INTERNET");
+}
+
+pub fn createSharedRegion() !ashmem.Ashmem {
+    var region = try ashmem.Ashmem.create("demo-state", 4096);
+    errdefer region.deinit();
+    try region.mapReadWrite();
+    try region.write(0, "ready");
+    return region;
 }
 
 comptime {
@@ -153,6 +164,8 @@ const ohos_binding = b.dependency("ohos_zig_binding", .{
 ```
 
 API 12 is the wrapper baseline. Wrapper APIs introduced in 12 or lower do not need guards. Wrapper functions that require a newer OpenHarmony API start with a compile-time guard in the Zig adapter. For example, if the binding is built with `-Dapi=12`, calling `hilog.setMinLogLevel` fails at compile time because that API was introduced in 15. The public wrapper does not expose separate `supports_*` checks; select the API level in the build and keep higher-API calls in code that is only compiled for that level.
+
+`ashmem` uses the stable `/dev/ashmem` ABI available at the API 12 baseline. `Ashmem.attach(fd)` duplicates descriptors received through ArkTS `Want` parameters, and the wrapper never supplies cross-process synchronization; build an immutable-frame or double-buffered protocol above it.
 
 - `OHOS_NDK_HOME` — native SDK directory, for example `/path/to/ohos-sdk/native`
 - `OHOS_SDK_HOME` — SDK root, used by `zig build` as a fallback
