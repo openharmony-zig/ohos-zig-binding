@@ -9,6 +9,7 @@ const Binding = struct {
     header: []const u8,
     sys_import: []const u8,
     system_libraries: []const []const u8,
+    cpp_bridge_sources: []const []const u8 = &.{},
     supports_napi: bool = false,
     default_api: ?u32 = null,
 };
@@ -57,6 +58,7 @@ pub const items = [_]Binding{
         .header = "src/native_drawing/ffi.h",
         .sys_import = "native_drawing_sys",
         .system_libraries = &.{"native_drawing"},
+        .cpp_bridge_sources = &.{"src/native_drawing/font_mgr_bridge.cpp"},
         .default_api = 12,
     },
     .{
@@ -136,6 +138,14 @@ fn addModule(
     });
     for (binding.system_libraries) |library| {
         try ndk.configureModuleLink(b, public, target.result, library);
+    }
+    if (binding.cpp_bridge_sources.len != 0) {
+        public.addCSourceFiles(.{
+            .files = binding.cpp_bridge_sources,
+            .flags = &.{"-std=c++17"},
+            .language = .cpp,
+        });
+        try ndk.configureCppBridge(b, public, target.result);
     }
     if (binding.supports_napi and xcomponent_napi) {
         public.addImport("xcomponent_napi", napi_module.?);

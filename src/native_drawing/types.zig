@@ -56,7 +56,7 @@ pub const FontEdging = enum(u32) {
     }
 };
 
-pub const FontWeight = enum(u32) {
+pub const FontWeight = enum(i32) {
     thin = 0,
     extra_light = 1,
     light = 2,
@@ -68,7 +68,7 @@ pub const FontWeight = enum(u32) {
     black = 8,
 };
 
-pub const FontWidth = enum(u32) {
+pub const FontWidth = enum(i32) {
     ultra_condensed = 1,
     extra_condensed = 2,
     condensed = 3,
@@ -80,7 +80,7 @@ pub const FontWidth = enum(u32) {
     ultra_expanded = 9,
 };
 
-pub const FontSlant = enum(u32) {
+pub const FontSlant = enum(i32) {
     normal = 0,
     italic = 1,
     oblique = 2,
@@ -90,14 +90,6 @@ pub const FontStyle = struct {
     weight: FontWeight = .normal,
     width: FontWidth = .normal,
     slant: FontSlant = .normal,
-
-    pub fn intoRaw(self: FontStyle) raw.OH_Drawing_FontStyleStruct {
-        return .{
-            .weight = @intFromEnum(self.weight),
-            .width = @intFromEnum(self.width),
-            .slant = @intFromEnum(self.slant),
-        };
-    }
 };
 
 pub const FontMetrics = struct {

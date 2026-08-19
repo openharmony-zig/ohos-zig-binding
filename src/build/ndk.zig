@@ -54,17 +54,12 @@ fn requireNdkPath(build: *std.Build) ![]const u8 {
 fn ndkIncludePaths(build: *std.Build, target: std.Target) !struct {
     basic: []const u8,
     platform: []const u8,
-    libcxx: []const u8,
 } {
     const root_path = try requireNdkPath(build);
     const basic = try std.fs.path.join(build.allocator, &.{ root_path, "sysroot", "usr", "include" });
     const platform = try std.fs.path.join(build.allocator, &.{ basic, platformDir(target) });
-    const libcxx = try std.fs.path.join(
-        build.allocator,
-        &.{ root_path, "llvm", "include", "libcxx-ohos", "include", "c++", "v1" },
-    );
 
-    return .{ .basic = basic, .platform = platform, .libcxx = libcxx };
+    return .{ .basic = basic, .platform = platform };
 }
 
 fn ndkLibraryPaths(build: *std.Build, target: std.Target) !struct {
@@ -106,12 +101,19 @@ pub fn configureTranslateC(
     target: std.Target,
 ) !void {
     const paths = try ndkIncludePaths(build, target);
-    // Some official C API headers (for example drawing_font_mgr.h) include
-    // typography declarations that select <cstddef> under Clang's C++
-    // preprocessing mode. Keep translate-c on the official header surface and
-    // provide the libc++ headers shipped by the NDK instead of duplicating ABI
-    // declarations in individual bindings.
-    translate_c.addSystemIncludePath(.{ .cwd_relative = paths.libcxx });
     translate_c.addSystemIncludePath(.{ .cwd_relative = paths.basic });
     translate_c.addSystemIncludePath(.{ .cwd_relative = paths.platform });
+}
+
+/// Configure a module that contains a C++ bridge for an OpenHarmony header
+/// which cannot be consumed by translate-c.
+pub fn configureCppBridge(
+    build: *std.Build,
+    module: *std.Build.Module,
+    target: std.Target,
+) !void {
+    const paths = try ndkIncludePaths(build, target);
+    module.addSystemIncludePath(.{ .cwd_relative = paths.basic });
+    module.addSystemIncludePath(.{ .cwd_relative = paths.platform });
+    module.linkSystemLibrary("c++", .{ .use_pkg_config = .no });
 }

@@ -128,7 +128,7 @@ pub const FontManager = struct {
 
     pub fn init() NativeDrawingError!FontManager {
         return .{
-            .handle = raw.OH_Drawing_FontMgrCreate() orelse
+            .handle = raw.OH_OhosZig_FontMgrCreate() orelse
                 return error.FontManagerUnavailable,
         };
     }
@@ -138,10 +138,12 @@ pub const FontManager = struct {
         family: [:0]const u8,
         style: FontStyle,
     ) ?Typeface {
-        const handle = raw.OH_Drawing_FontMgrMatchFamilyStyle(
+        const handle = raw.OH_OhosZig_FontMgrMatchFamilyStyle(
             self.handle,
             family.ptr,
-            style.intoRaw(),
+            @intFromEnum(style.weight),
+            @intFromEnum(style.width),
+            @intFromEnum(style.slant),
         ) orelse return null;
         return .{ .handle = handle };
     }
@@ -152,13 +154,13 @@ pub const FontManager = struct {
         style: FontStyle,
         character: u21,
     ) ?Typeface {
-        const handle = raw.OH_Drawing_FontMgrMatchFamilyStyleCharacter(
+        const handle = raw.OH_OhosZig_FontMgrMatchFamilyStyleCharacter(
             self.handle,
             family.ptr,
-            style.intoRaw(),
-            null,
-            0,
-            character,
+            @intFromEnum(style.weight),
+            @intFromEnum(style.width),
+            @intFromEnum(style.slant),
+            @intCast(character),
         ) orelse return null;
         return .{ .handle = handle };
     }
@@ -166,7 +168,7 @@ pub const FontManager = struct {
     pub fn deinit(self: *FontManager) void {
         const handle = self.handle orelse return;
         self.handle = null;
-        raw.OH_Drawing_FontMgrDestroy(handle);
+        raw.OH_OhosZig_FontMgrDestroy(handle);
     }
 };
 
