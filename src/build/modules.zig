@@ -52,6 +52,22 @@ pub const items = [_]Binding{
         .default_api = 12,
     },
     .{
+        .name = "native_drawing",
+        .root_source_file = "src/native_drawing/native_drawing.zig",
+        .header = "src/native_drawing/ffi.h",
+        .sys_import = "native_drawing_sys",
+        .system_libraries = &.{"native_drawing"},
+        .default_api = 12,
+    },
+    .{
+        .name = "input_method",
+        .root_source_file = "src/input_method/input_method.zig",
+        .header = "src/input_method/ffi.h",
+        .sys_import = "input_method_sys",
+        .system_libraries = &.{"ohinputmethod"},
+        .default_api = 12,
+    },
+    .{
         .name = "xcomponent",
         .root_source_file = "src/xcomponent/xcomponent.zig",
         .header = "src/xcomponent/ffi.h",
@@ -77,7 +93,7 @@ pub fn addAll(
         options.xcomponent_napi,
     );
     const napi_module = if (options.xcomponent_napi)
-        (b.lazyDependency("zig-napi", .{}) orelse return).module("napi")
+        b.dependency("zig-napi", .{}).module("napi")
     else
         null;
 
