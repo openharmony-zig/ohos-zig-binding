@@ -28,7 +28,7 @@ pub const NativeDrawingError = error{
 ///
 /// The pixel slice must remain alive and at a stable address until `deinit`.
 pub const Bitmap = struct {
-    handle: ?*raw.OH_Drawing_Bitmap,
+    handle: ?*raw.OH_OhosZig_DrawingBitmap,
 
     pub fn wrapPixels(
         pixels: []u8,
@@ -42,93 +42,90 @@ pub const Bitmap = struct {
         const required = std.math.mul(usize, row_bytes, height) catch
             return error.InvalidDimensions;
         if (pixels.len < required) return error.BufferTooSmall;
-        var info = raw.OH_Drawing_Image_Info{
-            .width = @intCast(width),
-            .height = @intCast(height),
-            .colorType = color_format.intoRaw(),
-            .alphaType = alpha_format.intoRaw(),
-        };
-        const handle = raw.OH_Drawing_BitmapCreateFromPixels(
-            &info,
+        const handle = raw.OH_OhosZig_DrawingBitmapCreateFromPixels(
             @ptrCast(pixels.ptr),
+            width,
+            height,
             row_bytes,
+            @intFromEnum(color_format),
+            @intFromEnum(alpha_format),
         ) orelse return error.BitmapUnavailable;
         return .{ .handle = handle };
     }
 
-    pub fn rawHandle(self: *const Bitmap) ?*raw.OH_Drawing_Bitmap {
+    pub fn rawHandle(self: *const Bitmap) ?*raw.OH_OhosZig_DrawingBitmap {
         return self.handle;
     }
 
     pub fn deinit(self: *Bitmap) void {
         const handle = self.handle orelse return;
         self.handle = null;
-        raw.OH_Drawing_BitmapDestroy(handle);
+        raw.OH_OhosZig_DrawingBitmapDestroy(handle);
     }
 };
 
 pub const Canvas = struct {
-    handle: ?*raw.OH_Drawing_Canvas,
+    handle: ?*raw.OH_OhosZig_DrawingCanvas,
 
     pub fn init(bitmap: *const Bitmap) NativeDrawingError!Canvas {
-        const handle = raw.OH_Drawing_CanvasCreate() orelse return error.CanvasUnavailable;
-        raw.OH_Drawing_CanvasBind(handle, bitmap.rawHandle());
+        const handle = raw.OH_OhosZig_DrawingCanvasCreate() orelse return error.CanvasUnavailable;
+        raw.OH_OhosZig_DrawingCanvasBind(handle, bitmap.rawHandle());
         return .{ .handle = handle };
     }
 
     pub fn attachBrush(self: *const Canvas, brush: *const Brush) void {
-        raw.OH_Drawing_CanvasAttachBrush(self.handle, brush.handle);
+        raw.OH_OhosZig_DrawingCanvasAttachBrush(self.handle, brush.handle);
     }
 
     pub fn detachBrush(self: *const Canvas) void {
-        raw.OH_Drawing_CanvasDetachBrush(self.handle);
+        raw.OH_OhosZig_DrawingCanvasDetachBrush(self.handle);
     }
 
     pub fn drawTextBlob(self: *const Canvas, blob: *const TextBlob, x: f32, y: f32) void {
-        raw.OH_Drawing_CanvasDrawTextBlob(self.handle, blob.handle, x, y);
+        raw.OH_OhosZig_DrawingCanvasDrawTextBlob(self.handle, blob.handle, x, y);
     }
 
     pub fn deinit(self: *Canvas) void {
         const handle = self.handle orelse return;
         self.handle = null;
-        raw.OH_Drawing_CanvasDestroy(handle);
+        raw.OH_OhosZig_DrawingCanvasDestroy(handle);
     }
 };
 
 pub const Brush = struct {
-    handle: ?*raw.OH_Drawing_Brush,
+    handle: ?*raw.OH_OhosZig_DrawingBrush,
 
     pub fn init() NativeDrawingError!Brush {
-        return .{ .handle = raw.OH_Drawing_BrushCreate() orelse return error.BrushUnavailable };
+        return .{ .handle = raw.OH_OhosZig_DrawingBrushCreate() orelse return error.BrushUnavailable };
     }
 
     pub fn setColor(self: *const Brush, argb: u32) void {
-        raw.OH_Drawing_BrushSetColor(self.handle, argb);
+        raw.OH_OhosZig_DrawingBrushSetColor(self.handle, argb);
     }
 
     pub fn deinit(self: *Brush) void {
         const handle = self.handle orelse return;
         self.handle = null;
-        raw.OH_Drawing_BrushDestroy(handle);
+        raw.OH_OhosZig_DrawingBrushDestroy(handle);
     }
 };
 
 pub const Typeface = struct {
-    handle: ?*raw.OH_Drawing_Typeface,
+    handle: ?*raw.OH_OhosZig_DrawingTypeface,
 
     pub fn deinit(self: *Typeface) void {
         const handle = self.handle orelse return;
         self.handle = null;
-        raw.OH_Drawing_TypefaceDestroy(handle);
+        raw.OH_OhosZig_DrawingTypefaceDestroy(handle);
     }
 };
 
 pub const FontManager = struct {
-    handle: ?*raw.OH_Drawing_FontMgr,
+    handle: ?*raw.OH_OhosZig_DrawingFontMgr,
 
     pub fn init() NativeDrawingError!FontManager {
         return .{
-            .handle = raw.OH_OhosZig_FontMgrCreate() orelse
+            .handle = raw.OH_OhosZig_DrawingFontMgrCreate() orelse
                 return error.FontManagerUnavailable,
         };
     }
@@ -138,7 +135,7 @@ pub const FontManager = struct {
         family: [:0]const u8,
         style: FontStyle,
     ) ?Typeface {
-        const handle = raw.OH_OhosZig_FontMgrMatchFamilyStyle(
+        const handle = raw.OH_OhosZig_DrawingFontMgrMatchFamilyStyle(
             self.handle,
             family.ptr,
             @intFromEnum(style.weight),
@@ -154,7 +151,7 @@ pub const FontManager = struct {
         style: FontStyle,
         character: u21,
     ) ?Typeface {
-        const handle = raw.OH_OhosZig_FontMgrMatchFamilyStyleCharacter(
+        const handle = raw.OH_OhosZig_DrawingFontMgrMatchFamilyStyleCharacter(
             self.handle,
             family.ptr,
             @intFromEnum(style.weight),
@@ -168,91 +165,90 @@ pub const FontManager = struct {
     pub fn deinit(self: *FontManager) void {
         const handle = self.handle orelse return;
         self.handle = null;
-        raw.OH_OhosZig_FontMgrDestroy(handle);
+        raw.OH_OhosZig_DrawingFontMgrDestroy(handle);
     }
 };
 
 /// Native font. A configured typeface is borrowed and must outlive the font.
 pub const Font = struct {
-    handle: ?*raw.OH_Drawing_Font,
+    handle: ?*raw.OH_OhosZig_DrawingFont,
 
     pub fn init() NativeDrawingError!Font {
-        return .{ .handle = raw.OH_Drawing_FontCreate() orelse return error.FontUnavailable };
+        return .{ .handle = raw.OH_OhosZig_DrawingFontCreate() orelse return error.FontUnavailable };
     }
 
     pub fn setTypeface(self: *const Font, typeface: *const Typeface) void {
-        raw.OH_Drawing_FontSetTypeface(self.handle, typeface.handle);
+        raw.OH_OhosZig_DrawingFontSetTypeface(self.handle, typeface.handle);
     }
 
     pub fn setTextSize(self: *const Font, size: f32) void {
-        raw.OH_Drawing_FontSetTextSize(self.handle, size);
+        raw.OH_OhosZig_DrawingFontSetTextSize(self.handle, size);
     }
 
     pub fn setScaleX(self: *const Font, scale: f32) void {
-        raw.OH_Drawing_FontSetScaleX(self.handle, scale);
+        raw.OH_OhosZig_DrawingFontSetScaleX(self.handle, scale);
     }
 
     /// Apply a synthetic italic shear while retaining the selected face's
     /// metrics. A negative value leans glyphs to the right in Native Drawing.
     pub fn setTextSkewX(self: *const Font, skew: f32) void {
-        raw.OH_Drawing_FontSetTextSkewX(self.handle, skew);
+        raw.OH_OhosZig_DrawingFontSetTextSkewX(self.handle, skew);
     }
 
     /// Thicken glyph strokes without changing the selected face or advance.
     pub fn setFakeBold(self: *const Font, enabled: bool) void {
-        raw.OH_Drawing_FontSetFakeBoldText(self.handle, enabled);
+        raw.OH_OhosZig_DrawingFontSetFakeBoldText(self.handle, @intFromBool(enabled));
     }
 
     pub fn setSubpixel(self: *const Font, enabled: bool) void {
-        raw.OH_Drawing_FontSetSubpixel(self.handle, enabled);
+        raw.OH_OhosZig_DrawingFontSetSubpixel(self.handle, @intFromBool(enabled));
     }
 
     pub fn setHinting(self: *const Font, hinting: FontHinting) void {
-        raw.OH_Drawing_FontSetHinting(self.handle, hinting.intoRaw());
+        raw.OH_OhosZig_DrawingFontSetHinting(self.handle, @intFromEnum(hinting));
     }
 
     pub fn setEdging(self: *const Font, edging: FontEdging) void {
-        raw.OH_Drawing_FontSetEdging(self.handle, edging.intoRaw());
+        raw.OH_OhosZig_DrawingFontSetEdging(self.handle, @intFromEnum(edging));
     }
 
     pub fn metrics(self: *const Font) FontMetrics {
-        var value: raw.OH_Drawing_Font_Metrics = std.mem.zeroes(raw.OH_Drawing_Font_Metrics);
-        _ = raw.OH_Drawing_FontGetMetrics(self.handle, &value);
-        return .fromRaw(value);
+        var value: raw.OH_OhosZig_DrawingFontMetrics = std.mem.zeroes(raw.OH_OhosZig_DrawingFontMetrics);
+        raw.OH_OhosZig_DrawingFontGetMetrics(self.handle, &value);
+        return .fromBridge(value);
     }
 
     pub fn measureText(self: *const Font, text: []const u8, encoding: TextEncoding) ?f32 {
         if (text.len == 0) return null;
         var width: f32 = 0;
-        const result = raw.OH_Drawing_FontMeasureText(
+        const result = raw.OH_OhosZig_DrawingFontMeasureText(
             self.handle,
             @ptrCast(text.ptr),
             text.len,
-            encoding.intoRaw(),
-            null,
+            @intFromEnum(encoding),
             &width,
         );
-        if (result != raw.OH_DRAWING_SUCCESS) return null;
+        if (result == 0) return null;
         return width;
     }
 
     pub fn deinit(self: *Font) void {
         const handle = self.handle orelse return;
         self.handle = null;
-        raw.OH_Drawing_FontDestroy(handle);
+        raw.OH_OhosZig_DrawingFontDestroy(handle);
     }
 };
 
 pub const TextBlob = struct {
-    handle: ?*raw.OH_Drawing_TextBlob,
+    handle: ?*raw.OH_OhosZig_DrawingTextBlob,
 
     pub fn fromText(text: []const u8, font: *const Font, encoding: TextEncoding) ?TextBlob {
         if (text.len == 0) return null;
-        const handle = raw.OH_Drawing_TextBlobCreateFromText(
+        const handle = raw.OH_OhosZig_DrawingTextBlobCreateFromText(
             @ptrCast(text.ptr),
             text.len,
             font.handle,
-            encoding.intoRaw(),
+            @intFromEnum(encoding),
         ) orelse return null;
         return .{ .handle = handle };
     }
@@ -260,14 +256,14 @@ pub const TextBlob = struct {
     pub fn deinit(self: *TextBlob) void {
         const handle = self.handle orelse return;
         self.handle = null;
-        raw.OH_Drawing_TextBlobDestroy(handle);
+        raw.OH_OhosZig_DrawingTextBlobDestroy(handle);
     }
 };
 
 test "native drawing enum values match the C API" {
-    try std.testing.expectEqual(@as(u32, 4), @intFromEnum(ColorFormat.rgba8888));
-    try std.testing.expectEqual(@as(u32, 3), @intFromEnum(FontWeight.normal));
-    try std.testing.expectEqual(@as(u32, 5), @intFromEnum(FontWidth.normal));
+    try std.testing.expectEqual(@as(i32, 4), @intFromEnum(ColorFormat.rgba8888));
+    try std.testing.expectEqual(@as(i32, 3), @intFromEnum(FontWeight.normal));
+    try std.testing.expectEqual(@as(i32, 5), @intFromEnum(FontWidth.normal));
 }
 
 test {

@@ -58,7 +58,7 @@ pub const items = [_]Binding{
         .header = "src/native_drawing/ffi.h",
         .sys_import = "native_drawing_sys",
         .system_libraries = &.{"native_drawing"},
-        .cpp_bridge_sources = &.{"src/native_drawing/font_mgr_bridge.cpp"},
+        .cpp_bridge_sources = &.{"src/native_drawing/native_drawing_bridge.cpp"},
         .default_api = 12,
     },
     .{

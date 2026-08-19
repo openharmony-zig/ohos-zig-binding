@@ -1,59 +1,39 @@
 const raw = @import("native_drawing_sys");
 
-pub const ColorFormat = enum(u32) {
+pub const ColorFormat = enum(i32) {
     unknown = 0,
     alpha8 = 1,
     rgb565 = 2,
     argb4444 = 3,
     rgba8888 = 4,
     bgra8888 = 5,
-
-    pub fn intoRaw(self: ColorFormat) raw.OH_Drawing_ColorFormat {
-        return @intFromEnum(self);
-    }
 };
 
-pub const AlphaFormat = enum(u32) {
+pub const AlphaFormat = enum(i32) {
     unknown = 0,
     @"opaque" = 1,
     premultiplied = 2,
     unpremultiplied = 3,
-
-    pub fn intoRaw(self: AlphaFormat) raw.OH_Drawing_AlphaFormat {
-        return @intFromEnum(self);
-    }
 };
 
-pub const TextEncoding = enum(u32) {
+pub const TextEncoding = enum(i32) {
     utf8 = 0,
     utf16 = 1,
     utf32 = 2,
     glyph_id = 3,
-
-    pub fn intoRaw(self: TextEncoding) raw.OH_Drawing_TextEncoding {
-        return @intFromEnum(self);
-    }
 };
 
-pub const FontHinting = enum(u32) {
+pub const FontHinting = enum(i32) {
     none = 0,
     slight = 1,
     normal = 2,
     full = 3,
-
-    pub fn intoRaw(self: FontHinting) raw.OH_Drawing_FontHinting {
-        return @intFromEnum(self);
-    }
 };
 
-pub const FontEdging = enum(u32) {
+pub const FontEdging = enum(i32) {
     alias = 0,
     anti_alias = 1,
     subpixel_anti_alias = 2,
-
-    pub fn intoRaw(self: FontEdging) raw.OH_Drawing_FontEdging {
-        return @intFromEnum(self);
-    }
 };
 
 pub const FontWeight = enum(i32) {
@@ -109,23 +89,23 @@ pub const FontMetrics = struct {
     strikeout_thickness: f32,
     strikeout_position: f32,
 
-    pub fn fromRaw(value: raw.OH_Drawing_Font_Metrics) FontMetrics {
+    pub fn fromBridge(value: raw.OH_OhosZig_DrawingFontMetrics) FontMetrics {
         return .{
             .top = value.top,
             .ascent = value.ascent,
             .descent = value.descent,
             .bottom = value.bottom,
             .leading = value.leading,
-            .average_character_width = value.avgCharWidth,
-            .maximum_character_width = value.maxCharWidth,
-            .x_min = value.xMin,
-            .x_max = value.xMax,
-            .x_height = value.xHeight,
-            .cap_height = value.capHeight,
-            .underline_thickness = value.underlineThickness,
-            .underline_position = value.underlinePosition,
-            .strikeout_thickness = value.strikeoutThickness,
-            .strikeout_position = value.strikeoutPosition,
+            .average_character_width = value.average_character_width,
+            .maximum_character_width = value.maximum_character_width,
+            .x_min = value.x_min,
+            .x_max = value.x_max,
+            .x_height = value.x_height,
+            .cap_height = value.cap_height,
+            .underline_thickness = value.underline_thickness,
+            .underline_position = value.underline_position,
+            .strikeout_thickness = value.strikeout_thickness,
+            .strikeout_position = value.strikeout_position,
         };
     }
 };
