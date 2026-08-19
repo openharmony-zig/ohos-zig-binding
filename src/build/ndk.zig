@@ -59,7 +59,10 @@ fn ndkIncludePaths(build: *std.Build, target: std.Target) !struct {
     const root_path = try requireNdkPath(build);
     const basic = try std.fs.path.join(build.allocator, &.{ root_path, "sysroot", "usr", "include" });
     const platform = try std.fs.path.join(build.allocator, &.{ basic, platformDir(target) });
-    const libcxx = try std.fs.path.join(build.allocator, &.{ root_path, "llvm", "include", "c++", "v1" });
+    const libcxx = try std.fs.path.join(
+        build.allocator,
+        &.{ root_path, "llvm", "include", "libcxx-ohos", "include", "c++", "v1" },
+    );
 
     return .{ .basic = basic, .platform = platform, .libcxx = libcxx };
 }
