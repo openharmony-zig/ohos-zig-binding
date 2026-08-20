@@ -104,3 +104,16 @@ pub fn configureTranslateC(
     translate_c.addSystemIncludePath(.{ .cwd_relative = paths.basic });
     translate_c.addSystemIncludePath(.{ .cwd_relative = paths.platform });
 }
+
+/// Configure a module that contains a C++ bridge for an OpenHarmony header
+/// which cannot be consumed by translate-c.
+pub fn configureCppBridge(
+    build: *std.Build,
+    module: *std.Build.Module,
+    target: std.Target,
+) !void {
+    const paths = try ndkIncludePaths(build, target);
+    module.addSystemIncludePath(.{ .cwd_relative = paths.basic });
+    module.addSystemIncludePath(.{ .cwd_relative = paths.platform });
+    module.linkSystemLibrary("c++", .{ .use_pkg_config = .no });
+}

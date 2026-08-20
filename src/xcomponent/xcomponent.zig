@@ -208,31 +208,42 @@ pub const NativeXComponent = struct {
                 }
             }
 
-            const sys = napi.napi_sys.napi_sys;
-            const native_xcomponent_object_name: [*:0]const u8 =
-                "__NATIVE_XCOMPONENT_OBJ__";
-
-            var exported_component: sys.napi_value = undefined;
-            if (sys.napi_get_named_property(
-                env.raw,
-                exports.raw,
-                native_xcomponent_object_name,
-                &exported_component,
-            ) != sys.napi_ok) {
-                return error.NapiCallFailed;
-            }
-
-            var instance: ?*anyopaque = null;
-            if (sys.napi_unwrap(env.raw, exported_component, &instance) != sys.napi_ok) {
-                return error.NapiCallFailed;
-            }
-            return fromRaw(@ptrCast(instance orelse return error.InvalidComponent));
+            return initRaw(@ptrCast(env.raw), @ptrCast(exports.raw));
         } else {
             @compileError(
                 "xcomponent N-API integration is disabled; pass " ++
                     ".xcomponent_napi = true to the ohos_zig_binding dependency",
             );
         }
+    }
+
+    /// Resolves the native XComponent from opaque N-API handles.
+    ///
+    /// This keeps N-API's low-level ABI inside the binding while allowing a
+    /// consumer to use a separately composed zig-napi module instance.
+    pub fn initRaw(env: ?*anyopaque, exports: ?*anyopaque) XComponentError!NativeXComponent {
+        if (!features.xcomponent_napi) {
+            return error.NapiCallFailed;
+        }
+        const sys = napi.napi_sys.napi_sys;
+        const native_xcomponent_object_name: [*:0]const u8 =
+            "__NATIVE_XCOMPONENT_OBJ__";
+
+        var exported_component: sys.napi_value = undefined;
+        if (sys.napi_get_named_property(
+            @ptrCast(env),
+            @ptrCast(exports),
+            native_xcomponent_object_name,
+            &exported_component,
+        ) != sys.napi_ok) {
+            return error.NapiCallFailed;
+        }
+
+        var instance: ?*anyopaque = null;
+        if (sys.napi_unwrap(@ptrCast(env), exported_component, &instance) != sys.napi_ok) {
+            return error.NapiCallFailed;
+        }
+        return fromRaw(@ptrCast(instance orelse return error.InvalidComponent));
     }
 
     pub fn rawHandle(self: NativeXComponent) *raw.OH_NativeXComponent {
