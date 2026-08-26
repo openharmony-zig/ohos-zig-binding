@@ -67,6 +67,17 @@ pub const NativeWindow = struct {
         if (result != 0) return error.NativeCallFailed;
     }
 
+    /// Returns the surface ID used to associate frame scheduling with this
+    /// native window.
+    pub fn surfaceId(self: *const NativeWindow) NativeWindowError!u64 {
+        const window = try self.requireHandle();
+        var surface_id: u64 = 0;
+        if (raw.OH_NativeWindow_GetSurfaceId(window, &surface_id) != 0 or surface_id == 0) {
+            return error.NativeCallFailed;
+        }
+        return surface_id;
+    }
+
     /// Dequeues, fence-waits, maps, and validates one writable window buffer.
     ///
     /// The returned buffer borrows `self`; keep this `NativeWindow` alive and
