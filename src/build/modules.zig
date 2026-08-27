@@ -53,6 +53,14 @@ pub const items = [_]Binding{
         .default_api = 12,
     },
     .{
+        .name = "native_vsync",
+        .root_source_file = "src/native_vsync/native_vsync.zig",
+        .header = "src/native_vsync/ffi.h",
+        .sys_import = "native_vsync_sys",
+        .system_libraries = &.{"native_vsync"},
+        .default_api = 12,
+    },
+    .{
         .name = "native_drawing",
         .root_source_file = "src/native_drawing/native_drawing.zig",
         .header = "src/native_drawing/ffi.h",

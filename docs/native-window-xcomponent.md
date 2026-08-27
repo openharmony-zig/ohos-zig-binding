@@ -11,6 +11,7 @@ lower-level API.
 `native_window.NativeWindow` covers:
 
 - acquiring and releasing a native-window reference;
+- resolving the surface ID used by associated frame schedulers;
 - setting buffer geometry;
 - requesting a buffer and waiting up to three seconds for its release fence;
 - converting the window buffer to `OH_NativeBuffer`, mapping it for CPU writes,
@@ -38,6 +39,7 @@ const native_window = @import("native_window");
 var window = try native_window.NativeWindow.cloneFromPtr(window_ptr);
 defer window.deinit();
 
+const surface_id = try window.surfaceId();
 try window.setBufferGeometry(640, 480);
 var buffer = try window.requestBuffer(null);
 errdefer buffer.abort() catch {};

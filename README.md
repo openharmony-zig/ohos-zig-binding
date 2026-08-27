@@ -16,6 +16,9 @@ See [docs/editor-setup.md](docs/editor-setup.md) to configure the OpenHarmony SD
 | `hilog` | HiLog logging binding |
 | `ability_access_control` | Ability access control (permission check) binding |
 | `native_window` | Referenced native-window handle and safe request/map/flush buffer flow |
+| `native_vsync` | Owned VSync connections, surface association, and safe one-shot callbacks |
+| `native_drawing` | Native Drawing canvas, bitmap, font, and text helpers |
+| `input_method` | Native input-method editor session wrapper |
 | `xcomponent` | Native XComponent initialization, geometry, event data, and callbacks |
 
 The `native_window` and `xcomponent` wrappers follow the public range and
@@ -73,6 +76,7 @@ pub fn build(b: *std.Build) !void {
         arm64.root_module.addImport("ashmem", ohos_binding.module("ashmem"));
         arm64.root_module.addImport("ability_access_control", ohos_binding.module("ability_access_control"));
         arm64.root_module.addImport("native_window", ohos_binding.module("native_window"));
+        arm64.root_module.addImport("native_vsync", ohos_binding.module("native_vsync"));
         arm64.root_module.addImport("xcomponent", ohos_binding.module("xcomponent"));
     }
     // repeat for arm / x64 as needed
