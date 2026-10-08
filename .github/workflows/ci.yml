@@ -22,7 +22,7 @@ jobs:
       - name: Setup Zig
         uses: openharmony-zig/setup-zig-ohos@v0.1.0
         with:
-          tag: '0.16.0'
+          tag: '0.17.0'
 
       - name: Check Zig syntax
         shell: bash
@@ -44,7 +44,12 @@ jobs:
 
   ohos-build:
     runs-on: ubuntu-latest
-    name: Build for OpenHarmony
+    name: Build for OpenHarmony (${{ matrix.target }}, ${{ matrix.optimize }})
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [aarch64-linux-ohos, arm-linux-ohoseabi, x86_64-linux-ohos]
+        optimize: [debug, safe]
 
     steps:
       - name: Checkout
@@ -58,7 +63,7 @@ jobs:
       - name: Setup Zig for OpenHarmony
         uses: openharmony-zig/setup-zig-ohos@v0.1.0
         with:
-          tag: '0.16.0'
+          tag: '0.17.0'
 
       - name: Validate OpenHarmony NDK
         shell: bash
@@ -69,8 +74,11 @@ jobs:
           test -d "$sdk_home/sysroot/usr/include" || test -d "$sdk_home/native/sysroot/usr/include"
 
       - name: Build root package
-        run: zig build -Dtarget=aarch64-linux-ohos -Doptimize=ReleaseSafe -Dapi=12 --summary all
+        run: zig build -Dtarget=${{ matrix.target }} -Doptimize=${{ matrix.optimize }} -Dapi=12 --summary all
+
+      - name: Build root package with XComponent N-API integration
+        run: zig build -Dtarget=${{ matrix.target }} -Doptimize=${{ matrix.optimize }} -Dapi=12 -Dxcomponent_napi=true --summary all
 
       - name: Build examples/basic
         working-directory: examples/basic
-        run: zig build -Dtarget=aarch64-linux-ohos -Doptimize=ReleaseSafe -Dapi=12 --summary all
+        run: zig build -Dtarget=${{ matrix.target }} -Doptimize=${{ matrix.optimize }} -Dapi=12 --summary all

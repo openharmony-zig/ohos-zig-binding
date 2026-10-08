@@ -103,7 +103,10 @@ pub fn addAll(
         options.xcomponent_napi,
     );
     const napi_module = if (options.xcomponent_napi)
-        b.dependency("zig-napi", .{}).module("napi")
+        b.dependency("zig-napi", .{
+            .target = target,
+            .optimize = optimize,
+        }).module("napi")
     else
         null;
 

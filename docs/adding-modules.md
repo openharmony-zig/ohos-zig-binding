@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Zig **0.16.0** or later
+- OpenHarmony-patched [Zig **0.17.0**](https://github.com/openharmony-zig/zig-patch/releases/tag/0.17.0)
 - OpenHarmony NDK configured (see [editor-setup.md](editor-setup.md))
 
 ## Project Layout

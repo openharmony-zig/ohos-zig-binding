@@ -335,11 +335,11 @@ pub const KeyCode = enum(i32) {
     _,
 
     pub fn fromRaw(value: i32) KeyCode {
-        return @enumFromInt(value);
+        return @fromBackingInt(value);
     }
 
     pub fn rawValue(self: KeyCode) i32 {
-        return @intFromEnum(self);
+        return @backingInt(self);
     }
 };
 

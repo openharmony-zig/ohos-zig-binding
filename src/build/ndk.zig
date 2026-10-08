@@ -1,6 +1,9 @@
 const std = @import("std");
 
 fn getEnvVarOptional(build: *std.Build, name: []const u8) ?[]const u8 {
+    // SDK overrides, including previously unset ones, must invalidate Zig 0.17's
+    // cached build configuration.
+    build.graph.poisonCache();
     return build.graph.environ_map.get(name);
 }
 
@@ -10,6 +13,7 @@ fn nativeFromSdkRoot(build: *std.Build, sdk_root: []const u8) ![]const u8 {
 }
 
 fn isValidNativeRoot(build: *std.Build, native_root: []const u8) bool {
+    build.graph.poisonCache();
     const include = std.fs.path.join(build.allocator, &.{ native_root, "sysroot", "usr", "include" }) catch return false;
     defer build.allocator.free(include);
     std.Io.Dir.cwd().access(build.graph.io, include, .{}) catch return false;

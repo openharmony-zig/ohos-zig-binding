@@ -576,7 +576,7 @@ fn dispatchTouchEvent(
             &tool,
         );
         if (tool_result == raw.OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
-            event.touch_points[index].event_tool_type = @enumFromInt(tool);
+            event.touch_points[index].event_tool_type = @fromBackingInt(tool);
         } else {
             notifyError(inputs.registration, inputs.component, tool_result);
         }
@@ -708,9 +708,9 @@ fn onKeyEvent(
         inputs.window,
         .{
             .code = .fromRaw(code),
-            .action = @enumFromInt(action),
+            .action = @fromBackingInt(action),
             .device_id = device_id,
-            .source = @enumFromInt(source),
+            .source = @fromBackingInt(source),
             .timestamp = timestamp,
         },
     );

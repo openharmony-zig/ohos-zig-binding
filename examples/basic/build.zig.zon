@@ -1,15 +1,15 @@
 .{
     .name = .ohos_binding_basic_demo,
     .version = "0.0.0",
-    .minimum_zig_version = "0.16.0",
+    .minimum_zig_version = "0.17.0",
     .fingerprint = 0x8b9e178a75a9fc65,
     .dependencies = .{
         .ohos_zig_binding = .{
             .path = "../..",
         },
         .@"zig-napi" = .{
-            .url = "https://github.com/openharmony-zig/zig-napi/archive/732df545be0986deadca16ca49e5f43199759457.tar.gz",
-            .hash = "zig_napi-0.1.0-H6Owa-yaCADSGSbJl4wKrcJyqJcTKrEQ19Aq_i_opHo3",
+            .url = "https://github.com/openharmony-zig/zig-napi/archive/1667e3e2ee770d2dd7e565a610b870907bf12a7e.tar.gz",
+            .hash = "zig_napi-0.1.0-H6OwaxJhEABrP0eCKzd6HNpryI2K84tMksWYz4s9L3YU",
         },
     },
     .paths = .{

@@ -12,7 +12,7 @@ pub const ResultCode = enum(i32) {
     _,
 
     pub fn fromRaw(value: i32) ResultCode {
-        return @enumFromInt(value);
+        return @fromBackingInt(value);
     }
 };
 
@@ -119,7 +119,7 @@ pub const TouchPointData = struct {
             .screen_y = value.screenY,
             .x = value.x,
             .y = value.y,
-            .event_type = @enumFromInt(@field(value, "type")),
+            .event_type = @fromBackingInt(@field(value, "type")),
             .size = value.size,
             .force = value.force,
             .timestamp = value.timeStamp,
@@ -139,7 +139,7 @@ pub const TouchPointData = struct {
             .timeStamp = self.timestamp,
             .isPressed = self.is_pressed,
         };
-        @field(value, "type") = @intFromEnum(self.event_type);
+        @field(value, "type") = @backingInt(self.event_type);
         return value;
     }
 };
@@ -155,8 +155,7 @@ pub const TouchEventData = struct {
     force: f32 = 0,
     device_id: i64 = 0,
     timestamp: i64 = 0,
-    touch_points: [max_touch_points]TouchPointData =
-        [_]TouchPointData{.{}} ** max_touch_points,
+    touch_points: [max_touch_points]TouchPointData = @splat(.{}),
     num_points: u32 = 0,
 
     pub fn fromRaw(value: raw.OH_NativeXComponent_TouchEvent) TouchEventData {
@@ -166,7 +165,7 @@ pub const TouchEventData = struct {
             .screen_y = value.screenY,
             .x = value.x,
             .y = value.y,
-            .event_type = @enumFromInt(@field(value, "type")),
+            .event_type = @fromBackingInt(@field(value, "type")),
             .size = value.size,
             .force = value.force,
             .device_id = value.deviceId,
@@ -192,7 +191,7 @@ pub const TouchEventData = struct {
             .timeStamp = self.timestamp,
             .numPoints = @min(self.num_points, max_touch_points),
         };
-        @field(value, "type") = @intFromEnum(self.event_type);
+        @field(value, "type") = @backingInt(self.event_type);
         for (0..value.numPoints) |index| {
             value.touchPoints[index] = self.touch_points[index].toRaw();
         }
@@ -220,8 +219,8 @@ pub const MouseEventData = struct {
             .screen_x = value.screenX,
             .screen_y = value.screenY,
             .timestamp = value.timestamp,
-            .action = @enumFromInt(value.action),
-            .button = @enumFromInt(value.button),
+            .action = @fromBackingInt(value.action),
+            .button = @fromBackingInt(value.button),
         };
     }
 };

@@ -103,9 +103,9 @@ pub fn printFmt(level: Level, comptime fmt: []const u8, args: anytype) c_int {
 
 pub fn printWithOptions(level: Level, options: Options, msg: []const u8) c_int {
     const allocator = std.heap.smp_allocator;
-    const tag_z = allocator.dupeZ(u8, options.tag) catch return -1;
+    const tag_z = allocator.dupeSentinel(u8, options.tag, 0) catch return -1;
     defer allocator.free(tag_z);
-    const msg_z = allocator.dupeZ(u8, msg) catch return -1;
+    const msg_z = allocator.dupeSentinel(u8, msg, 0) catch return -1;
     defer allocator.free(msg_z);
 
     return hilog.OH_LOG_Print(
@@ -193,7 +193,7 @@ pub fn isLoggable(level: Level) bool {
 
 pub fn isLoggableWithOptions(level: Level, options: Options) bool {
     const allocator = std.heap.smp_allocator;
-    const tag_z = allocator.dupeZ(u8, options.tag) catch return false;
+    const tag_z = allocator.dupeSentinel(u8, options.tag, 0) catch return false;
     defer allocator.free(tag_z);
 
     return hilog.OH_LOG_IsLoggable(

@@ -43,7 +43,7 @@ pub const Operation = enum(i32) {
         if (self == .set_desired_present_timestamp) {
             api.require("native_window.Operation.set_desired_present_timestamp", 13);
         }
-        return @intFromEnum(self);
+        return @backingInt(self);
     }
 };
 
@@ -92,11 +92,11 @@ pub const NativeBufferFormat = enum(i32) {
     _,
 
     pub fn fromRaw(raw_value: i32) NativeBufferFormat {
-        return @enumFromInt(raw_value);
+        return @fromBackingInt(raw_value);
     }
 
     pub fn raw(self: NativeBufferFormat) i32 {
-        return @intFromEnum(self);
+        return @backingInt(self);
     }
 
     /// Returns the byte width used by the reference binding's packed access.
