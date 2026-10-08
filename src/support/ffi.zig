@@ -13,7 +13,7 @@ pub fn check(code: anytype) Error!void {
     if (code != 0) return error.NativeCallFailed;
 }
 
-pub fn count(comptime T: type, len: usize) Error!T {
+pub fn count(comptime T: type, len: anytype) Error!T {
     return std.math.cast(T, len) orelse error.InvalidArgument;
 }
 

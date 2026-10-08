@@ -16,6 +16,12 @@ See [docs/editor-setup.md](docs/editor-setup.md) to configure the OpenHarmony SD
 
 | Module | Description |
 |--------|-------------|
+| `asset` | Asset attributes, owned query results and authentication challenges |
+| `huks` | Key parameter sets, key operations and cryptographic sessions |
+| `udmf` | Unified data, records, plain text, HTML and hyperlinks |
+| `pasteboard` | API 13 clipboard access using unified data |
+| `resource_manager` | Raw files/directories and allocator-owned media resources |
+| `sensor` | Sensor discovery, event views and subscription lifecycle |
 | `init` | System capability queries |
 | `bundle` | Owned application info, app identifiers, and main element names |
 | `qos` | Thread QoS and API 20 Gewu sessions |

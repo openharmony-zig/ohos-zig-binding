@@ -99,6 +99,140 @@ fn onDisplay(_: u64) callconv(.c) void {}
 fn onFold(_: display.raw.NativeDisplayManager_FoldDisplayMode) callconv(.c) void {}
 fn onFrame(_: i64, _: i64, _: ?*anyopaque) callconv(.c) void {}
 
+const asset = @import("asset");
+const huks = @import("huks");
+const udmf = @import("udmf");
+const sensor = @import("sensor");
+const resources = @import("resource_manager");
+
+export fn checkAssets() void {
+    const attributes = [_]asset.Attribute{
+        asset.bytesAttribute(asset.raw.ASSET_TAG_ALIAS, "alias") catch return,
+        asset.boolAttribute(asset.raw.ASSET_TAG_REQUIRE_PASSWORD_SET, false),
+        asset.uintAttribute(asset.raw.ASSET_TAG_ACCESSIBILITY, 0),
+    };
+    asset.add(&attributes) catch {};
+    asset.update(&attributes, &attributes) catch {};
+    var results = asset.query(&attributes) catch return;
+    _ = results.results();
+    results.deinit();
+    var challenge = asset.preQuery(&attributes) catch return;
+    _ = challenge.bytes();
+    challenge.deinit();
+    asset.postQuery(&attributes) catch {};
+    asset.remove(&attributes) catch {};
+}
+
+export fn checkHuks() void {
+    var params = huks.ParamSet.create(&.{}) catch return;
+    defer params.deinit();
+    const key = huks.Key.init("compile-check") catch return;
+    key.generate(params) catch {};
+    key.importKey(params, "key") catch {};
+    _ = key.exists(params) catch return;
+    var output: [4096]u8 = undefined;
+    _ = key.exportPublicKey(params, &output) catch return;
+    var session = huks.Session.create(key, params) catch return;
+    defer session.deinit() catch {};
+    _ = session.token();
+    _ = session.update(params, "input", &output) catch return;
+    _ = session.finish(params, "input", &output) catch return;
+    session.abort(params) catch {};
+    key.delete(params) catch {};
+}
+
+export fn checkUdmf() void {
+    var data = udmf.Data.create() catch return;
+    defer data.deinit();
+    var record = udmf.Record.create() catch return;
+    defer record.deinit();
+    var text = udmf.PlainText.create() catch return;
+    defer text.deinit();
+    text.setContent("text") catch {};
+    text.setAbstract("summary") catch {};
+    _ = text.getContent() catch return;
+    _ = text.getAbstract() catch return;
+    record.addPlainText(text) catch {};
+    var html = udmf.Html.create() catch return;
+    defer html.deinit();
+    html.setContent("<p>text</p>") catch {};
+    html.setPlainContent("text") catch {};
+    _ = html.getContent() catch return;
+    _ = html.getPlainContent() catch return;
+    record.addHtml(html) catch {};
+    var link = udmf.Hyperlink.create() catch return;
+    defer link.deinit();
+    link.setUrl("https://example.com") catch {};
+    link.setDescription("example") catch {};
+    _ = link.getUrl() catch return;
+    _ = link.getDescription() catch return;
+    record.addHyperlink(link) catch {};
+    record.addGeneralEntry("general.text", "value") catch {};
+    _ = record.getGeneralEntry("general.text") catch return;
+    data.addRecord(record) catch {};
+    _ = data.hasType("general.plain-text") catch return;
+    var key_buffer: [512]u8 = undefined;
+    _ = data.save(0, &key_buffer) catch return;
+    var loaded = udmf.Data.load("key", 0) catch return;
+    loaded.deinit();
+    if (comptime level >= 13) {
+        _ = data.recordCount() catch return;
+        var board = @import("pasteboard").Pasteboard.create() catch return;
+        defer board.deinit();
+        _ = board.hasData() catch return;
+        _ = board.hasType("general.plain-text") catch return;
+        _ = board.isRemoteData() catch return;
+        board.setData(data) catch {};
+        var read = board.getData() catch return;
+        read.deinit();
+        _ = board.getDataSource(&key_buffer) catch return;
+        board.clear() catch {};
+    }
+}
+
+export fn checkSensor(event: *sensor.raw.Sensor_Event) void {
+    _ = sensor.Event.fromRaw(event) catch return;
+    var infos = sensor.InfoList.query() catch return;
+    defer infos.deinit() catch {};
+    const info = infos.get(0) catch return;
+    var name: [128]u8 = undefined;
+    _ = info.name(&name) catch return;
+    _ = info.vendor(&name) catch return;
+    _ = info.getType() catch return;
+    _ = info.resolution() catch return;
+    _ = info.minSamplingInterval() catch return;
+    _ = info.maxSamplingInterval() catch return;
+    var subscription = sensor.Subscription.create(1, 100000000, onSensor) catch return;
+    defer subscription.deinit() catch {};
+    subscription.start() catch {};
+    subscription.stop() catch {};
+}
+fn onSensor(_: ?*sensor.raw.Sensor_Event) callconv(.c) void {}
+
+export fn checkResources(env: resources.raw.napi_env, value: resources.raw.napi_value) void {
+    var manager = resources.ResourceManager.create(env, value) catch return;
+    defer manager.deinit();
+    _ = manager.isRawDir(".") catch return;
+    var directory = manager.openDir(".") catch return;
+    defer directory.deinit();
+    _ = directory.count() catch return;
+    _ = directory.name(0) catch return;
+    var file = manager.openFile("test") catch return;
+    defer file.deinit();
+    var output: [128]u8 = undefined;
+    _ = file.read(&output) catch return;
+    file.seek(0, .start) catch {};
+    _ = file.size() catch return;
+    _ = file.offset() catch return;
+    _ = file.remaining() catch return;
+    const media = manager.media(allocator, 1, 0) catch return;
+    allocator.free(media);
+    const named = manager.mediaByName(allocator, "test", 0) catch return;
+    allocator.free(named);
+    const base64 = manager.mediaBase64(allocator, 1, 0) catch return;
+    allocator.free(base64);
+}
+
 export fn checkBuffer(window: *buffer.raw.OHNativeWindowBuffer) void {
     var value = buffer.NativeBuffer.create(.{ .width = 16, .height = 16, .format = 12, .usage = 0, .stride = 0 }) catch return;
     defer value.deinit() catch {};
