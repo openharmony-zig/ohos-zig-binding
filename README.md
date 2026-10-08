@@ -16,6 +16,12 @@ See [docs/editor-setup.md](docs/editor-setup.md) to configure the OpenHarmony SD
 
 | Module | Description |
 |--------|-------------|
+| `net_connection` | Network discovery, DNS results and callback registrations |
+| `net_stack` | TLS certificate verification, WebSocket and API 20 HTTP owners |
+| `camera` | Device discovery, capabilities, inputs and capture/preview sessions |
+| `image` | Legacy N-API image, source and borrowed pixelmap adapters |
+| `image_native` | Native decoding, pixelmaps, packing and image receivers |
+| `jsvm` | VM/environment scopes, script evaluation, values and references |
 | `asset` | Asset attributes, owned query results and authentication challenges |
 | `huks` | Key parameter sets, key operations and cryptographic sessions |
 | `udmf` | Unified data, records, plain text, HTML and hyperlinks |

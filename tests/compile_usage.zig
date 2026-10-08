@@ -244,3 +244,171 @@ export fn checkBuffer(window: *buffer.raw.OHNativeWindowBuffer) void {
     var borrowed = buffer.NativeBuffer.fromWindowBuffer(window) catch return;
     borrowed.deinit() catch {};
 }
+
+const connection = @import("net_connection");
+const stack = @import("net_stack");
+export fn checkNetwork() void {
+    _ = connection.hasDefaultNet() catch return;
+    _ = connection.isDefaultNetMetered() catch return;
+    _ = connection.defaultHttpProxy() catch return;
+    _ = connection.allNetworks() catch return;
+    const network = connection.Network.default() catch return;
+    _ = network.properties() catch return;
+    _ = network.capabilities() catch return;
+    network.bindSocket(0) catch {};
+    var dns = network.resolve("example.com", "443", null) catch return;
+    dns.deinit() catch {};
+    var callbacks = std.mem.zeroes(connection.raw.NetConn_NetConnCallback);
+    var registration = connection.Registration.default(&callbacks) catch return;
+    registration.deinit() catch {};
+    var specifier = std.mem.zeroes(connection.raw.NetConn_NetSpecifier);
+    registration = connection.Registration.matching(&specifier, &callbacks, 1000) catch return;
+    registration.deinit() catch {};
+    var certificates = stack.Certificates.forHost("example.com") catch return;
+    certificates.deinit();
+    var cert = std.mem.zeroes(stack.raw.NetStack_CertBlob);
+    stack.verifyCertificate(&cert, null) catch {};
+    var socket = stack.WebSocket.create(null, null, null, null) catch return;
+    defer socket.deinit() catch {};
+    socket.addHeader("User-Agent", "zig") catch {};
+    socket.connect("wss://example.com") catch {};
+    socket.send("hello") catch {};
+    socket.close(1000, "done") catch {};
+    if (comptime level >= 20) {
+        var headers = stack.HttpHeaders.create() catch return;
+        defer headers.deinit();
+        headers.set("Accept", "text/plain") catch {};
+        var request = stack.HttpRequest.create("https://example.com") catch return;
+        defer request.deinit();
+        _ = request.options() catch return;
+        request.send(onHttpResponse, std.mem.zeroes(stack.raw.Http_EventsHandler)) catch {};
+    }
+}
+fn onHttpResponse(value: [*c]stack.raw.Http_Response, _: u32) callconv(.c) void {
+    if (comptime level >= 20) {
+        if (value == null) return;
+        var response = stack.HttpResponse.fromOwned(value);
+        defer response.deinit() catch {};
+        _ = response.body() catch return;
+    }
+}
+
+const camera = @import("camera");
+const images = @import("image_native");
+const legacy_image = @import("image");
+export fn checkCamera() void {
+    var manager = camera.Manager.create() catch return;
+    defer manager.deinit() catch {};
+    var devices = manager.cameras() catch return;
+    defer devices.deinit() catch {};
+    if (devices.values().len == 0) return;
+    var capability = manager.capability(&devices.values()[0]) catch return;
+    defer capability.deinit() catch {};
+    const caps = capability.value() catch return;
+    if (caps.previewProfilesSize == 0) return;
+    var input = camera.Input.create(manager, &devices.values()[0]) catch return;
+    defer input.deinit() catch {};
+    input.open() catch {};
+    defer input.close() catch {};
+    var preview = camera.Preview.create(manager, caps.previewProfiles[0], "1") catch return;
+    defer preview.deinit() catch {};
+    var photo = camera.Photo.create(manager, caps.previewProfiles[0], "1") catch return;
+    defer photo.deinit() catch {};
+    var session = camera.Session.create(manager) catch return;
+    defer session.deinit() catch {};
+    session.setMode(0) catch {};
+    session.beginConfig() catch {};
+    session.addInput(input) catch {};
+    session.addPreview(preview) catch {};
+    session.addPhoto(photo) catch {};
+    session.commitConfig() catch {};
+    session.start() catch {};
+    preview.start() catch {};
+    photo.capture() catch {};
+    photo.captureWithSettings(std.mem.zeroes(camera.raw.Camera_PhotoCaptureSetting)) catch {};
+    preview.stop() catch {};
+    session.stop() catch {};
+    session.beginConfig() catch {};
+    session.removePhoto(photo) catch {};
+    session.removePreview(preview) catch {};
+    session.removeInput(input) catch {};
+    session.commitConfig() catch {};
+}
+export fn checkImages() void {
+    var options = images.DecodeOptions.create() catch return;
+    defer options.deinit() catch {};
+    options.setSize(.{ .width = 16, .height = 16 }) catch {};
+    options.setIndex(0) catch {};
+    options.setPixelFormat(3) catch {};
+    var source = images.Source.fromData("encoded") catch return;
+    defer source.deinit() catch {};
+    var file_source = images.Source.fromFd(0) catch return;
+    file_source.deinit() catch {};
+    _ = source.frameCount() catch return;
+    var pixels = source.decode(options) catch return;
+    defer pixels.deinit() catch {};
+    var bytes: [4096]u8 = undefined;
+    _ = pixels.read(&bytes) catch return;
+    pixels.write(&bytes) catch {};
+    pixels.scale(2, 2) catch {};
+    pixels.rotate(90) catch {};
+    pixels.flip(false, true) catch {};
+    pixels.crop(std.mem.zeroes(images.raw.Image_Region)) catch {};
+    var packing = images.PackingOptions.create() catch return;
+    defer packing.deinit() catch {};
+    packing.setMimeType("image/png") catch {};
+    packing.setQuality(90) catch {};
+    var packer = images.Packer.create() catch return;
+    defer packer.deinit() catch {};
+    _ = packer.pack(packing, pixels, &bytes) catch return;
+    packer.packToFile(packing, pixels, 0) catch {};
+    var receiver = images.Receiver.create(.{ .width = 16, .height = 16 }, 2) catch return;
+    defer receiver.deinit() catch {};
+    _ = receiver.surfaceId() catch return;
+    var frame = receiver.readLatest() catch return;
+    defer frame.deinit() catch {};
+    _ = frame.size() catch return;
+    _ = frame.timestamp() catch return;
+}
+export fn checkLegacyImages(env: legacy_image.raw.napi_env, value: legacy_image.raw.napi_value) void {
+    const pixels = legacy_image.Pixelmap.fromNapi(env, value) catch return;
+    _ = pixels.info() catch return;
+    pixels.scale(1, 1) catch {};
+    pixels.rotate(90) catch {};
+    pixels.setOpacity(0.5) catch {};
+    var frame = legacy_image.Image.fromNapi(env, value) catch return;
+    defer frame.deinit() catch {};
+    _ = frame.size() catch return;
+    _ = frame.component(0) catch return;
+    var source = legacy_image.Source.fromNapi(env, value) catch return;
+    defer source.deinit() catch {};
+    _ = source.frameCount() catch return;
+    _ = source.decode(std.mem.zeroes(legacy_image.raw.OhosImageDecodingOps)) catch return;
+}
+
+const jsvm = @import("jsvm");
+export fn checkJsvm() void {
+    jsvm.initialize(&std.mem.zeroes(jsvm.raw.JSVM_InitOptions)) catch return;
+    var vm = jsvm.Vm.create(std.mem.zeroes(jsvm.raw.JSVM_CreateVMOptions)) catch return;
+    defer vm.deinit() catch {};
+    var vm_scope = vm.openScope() catch return;
+    defer vm_scope.deinit() catch {};
+    var env = vm.createEnv(&.{}) catch return;
+    defer env.deinit() catch {};
+    var env_scope = env.openScope() catch return;
+    defer env_scope.deinit() catch {};
+    var handles = env.openHandleScope() catch return;
+    defer handles.deinit() catch {};
+    const value = env.eval("1 + 2") catch return;
+    _ = value.toNumber() catch return;
+    const text = value.toString(allocator) catch return;
+    allocator.free(text);
+    _ = env.number(1) catch return;
+    _ = env.string("text") catch return;
+    var reference = value.retain() catch return;
+    _ = reference.value() catch return;
+    reference.deinit() catch {};
+    _ = env.takeException() catch return;
+    _ = vm.pumpMessageLoop() catch return;
+    vm.performMicrotaskCheckpoint() catch {};
+}
