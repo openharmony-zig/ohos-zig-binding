@@ -17,5 +17,6 @@
         "README.md",
         "docs",
         "examples",
+        "tests",
     },
 }

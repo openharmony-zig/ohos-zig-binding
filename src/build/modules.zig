@@ -9,6 +9,7 @@ const Binding = struct {
     header: []const u8,
     sys_import: []const u8,
     system_libraries: []const []const u8,
+    imports: []const []const u8 = &.{},
     cpp_bridge_sources: []const []const u8 = &.{},
     supports_napi: bool = false,
     default_api: ?u32 = null,
@@ -20,6 +21,78 @@ pub const AddAllOptions = struct {
 };
 
 pub const items = [_]Binding{
+    .{
+        .name = "init",
+        .root_source_file = "src/init/init.zig",
+        .header = "src/init/ffi.h",
+        .sys_import = "init_sys",
+        .system_libraries = &.{"deviceinfo_ndk.z"},
+        .default_api = 12,
+    },
+    .{
+        .name = "bundle",
+        .root_source_file = "src/bundle/bundle.zig",
+        .header = "src/bundle/ffi.h",
+        .sys_import = "bundle_sys",
+        .system_libraries = &.{"bundle_ndk.z"},
+        .default_api = 12,
+    },
+    .{
+        .name = "qos",
+        .root_source_file = "src/qos/qos.zig",
+        .header = "src/qos/ffi.h",
+        .sys_import = "qos_sys",
+        .system_libraries = &.{"qos"},
+        .default_api = 12,
+    },
+    .{
+        .name = "vibrator",
+        .root_source_file = "src/vibrator/vibrator.zig",
+        .header = "src/vibrator/ffi.h",
+        .sys_import = "vibrator_sys",
+        .system_libraries = &.{"ohvibrator.z"},
+        .default_api = 12,
+    },
+    .{
+        .name = "fileuri",
+        .root_source_file = "src/fileuri/fileuri.zig",
+        .header = "src/fileuri/ffi.h",
+        .sys_import = "fileuri_sys",
+        .system_libraries = &.{"ohfileuri"},
+        .default_api = 12,
+    },
+    .{
+        .name = "fileshare",
+        .root_source_file = "src/fileshare/fileshare.zig",
+        .header = "src/fileshare/ffi.h",
+        .sys_import = "fileshare_sys",
+        .system_libraries = &.{"ohfileshare"},
+        .default_api = 12,
+    },
+    .{
+        .name = "display",
+        .root_source_file = "src/display/display.zig",
+        .header = "src/display/ffi.h",
+        .sys_import = "display_sys",
+        .system_libraries = &.{"native_display_manager"},
+        .default_api = 12,
+    },
+    .{
+        .name = "native_display_soloist",
+        .root_source_file = "src/native_display_soloist/native_display_soloist.zig",
+        .header = "src/native_display_soloist/ffi.h",
+        .sys_import = "native_display_soloist_sys",
+        .system_libraries = &.{"native_display_soloist"},
+        .default_api = 12,
+    },
+    .{
+        .name = "native_buffer",
+        .root_source_file = "src/native_buffer/native_buffer.zig",
+        .header = "src/native_buffer/ffi.h",
+        .sys_import = "native_buffer_sys",
+        .system_libraries = &.{"native_buffer"},
+        .default_api = 12,
+    },
     .{
         .name = "ashmem",
         .root_source_file = "src/ashmem/ashmem.zig",
@@ -102,6 +175,12 @@ pub fn addAll(
         optimize,
         options.xcomponent_napi,
     );
+    const ffi_support = b.createModule(.{
+        .root_source_file = b.path("src/support/ffi.zig"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
     const napi_module = if (options.xcomponent_napi)
         b.dependency("zig-napi", .{
             .target = target,
@@ -117,10 +196,16 @@ pub fn addAll(
             optimize,
             api_support,
             feature_support,
+            ffi_support,
             napi_module,
             options.xcomponent_napi,
             binding,
         );
+    }
+    for (items) |binding| {
+        for (binding.imports) |name| {
+            b.modules.get(binding.name).?.addImport(name, b.modules.get(name).?);
+        }
     }
 }
 
@@ -130,6 +215,7 @@ fn addModule(
     optimize: std.builtin.OptimizeMode,
     api_support: *std.Build.Module,
     feature_support: *std.Build.Module,
+    ffi_support: *std.Build.Module,
     napi_module: ?*std.Build.Module,
     xcomponent_napi: bool,
     binding: Binding,
@@ -139,6 +225,7 @@ fn addModule(
         .{ .name = binding.sys_import, .module = sys },
         .{ .name = "ohos_zig_binding_api", .module = api_support },
         .{ .name = "ohos_zig_binding_features", .module = feature_support },
+        .{ .name = "ohos_zig_binding_ffi", .module = ffi_support },
     };
 
     const public = b.addModule(binding.name, .{

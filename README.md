@@ -16,6 +16,15 @@ See [docs/editor-setup.md](docs/editor-setup.md) to configure the OpenHarmony SD
 
 | Module | Description |
 |--------|-------------|
+| `init` | System capability queries |
+| `bundle` | Owned application info, app identifiers, and main element names |
+| `qos` | Thread QoS and API 20 Gewu sessions |
+| `vibrator` | Timed/custom vibration and cancellation |
+| `fileuri` | Checked path/URI conversion with allocator-owned results |
+| `fileshare` | Persistent file permission policies and owned per-policy errors |
+| `display` | Display metrics, cutouts, and listener ownership |
+| `native_display_soloist` | Frame scheduling with explicit callback teardown |
+| `native_buffer` | Reference-counted buffers and checked CPU mappings |
 | `ashmem` | Owned ashmem descriptors, safe create/attach/map/unmap, and checked byte access |
 | `hilog` | HiLog logging binding |
 | `ability_access_control` | Ability access control (permission check) binding |
