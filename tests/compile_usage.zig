@@ -412,3 +412,124 @@ export fn checkJsvm() void {
     _ = vm.pumpMessageLoop() catch return;
     vm.performMicrotaskCheckpoint() catch {};
 }
+
+const arkui = @import("arkui");
+const input_events = @import("arkui_input");
+const accessibility = @import("accessibility");
+const web = @import("web");
+export fn checkArkui(content_handle: arkui.raw.ArkUI_NodeContentHandle) void {
+    const api = arkui.NodeApi.load() catch return;
+    var parent = api.create(arkui.raw.ARKUI_NODE_COLUMN) catch return;
+    defer parent.deinit() catch {};
+    var child = api.create(arkui.raw.ARKUI_NODE_TEXT) catch return;
+    defer child.deinit() catch {};
+    parent.addChild(child) catch {};
+    child.setNumber(arkui.raw.NODE_WIDTH, 100) catch {};
+    child.setString(arkui.raw.NODE_TEXT_CONTENT, "hello") catch {};
+    child.resetAttribute(arkui.raw.NODE_WIDTH) catch {};
+    child.registerEvent(arkui.raw.NODE_ON_CLICK, 1, null) catch {};
+    child.addEventReceiver(onNodeEvent) catch {};
+    child.removeEventReceiver(onNodeEvent) catch {};
+    child.unregisterEvent(arkui.raw.NODE_ON_CLICK) catch {};
+    parent.removeChild(child) catch {};
+    const content = arkui.Content.fromRaw(content_handle) catch return;
+    content.add(parent) catch {};
+    content.remove(parent) catch {};
+    var dialog = arkui.Dialog.create() catch return;
+    defer dialog.deinit() catch {};
+    dialog.setContent(parent) catch {};
+    dialog.show(false) catch {};
+    dialog.close() catch {};
+}
+fn onNodeEvent(_: ?*arkui.raw.ArkUI_NodeEvent) callconv(.c) void {}
+export fn checkInputEvent(handle: *const input_events.raw.ArkUI_UIInputEvent) void {
+    const event = input_events.Event.fromRaw(handle);
+    _ = event.eventType();
+    _ = event.action();
+    _ = event.sourceType();
+    _ = event.toolType();
+    _ = event.time();
+    _ = event.pointerCount();
+    _ = event.pointer(0) catch return;
+    _ = event.historySize();
+    _ = event.historyPosition(0, 0) catch return;
+    event.stopPropagation(true) catch {};
+    event.intercept(0) catch {};
+    if (comptime level >= 14) {
+        var keys: [16]i32 = undefined;
+        _ = event.pressedKeys(&keys) catch return;
+    }
+}
+export fn checkAccessibility(handle: *accessibility.raw.ArkUI_AccessibilityProvider) void {
+    if (comptime level >= 13) {
+        var element = accessibility.Element.create() catch return;
+        defer element.deinit();
+        element.setElementId(1) catch {};
+        element.setParentId(0) catch {};
+        element.setContents("content") catch {};
+        element.setComponentType("Text") catch {};
+        element.setAccessibilityText("label") catch {};
+        element.setEnabled(true) catch {};
+        element.setFocusable(true) catch {};
+        element.setFocused(false) catch {};
+        element.setVisible(true) catch {};
+        element.setClickable(true) catch {};
+        element.setSelected(false) catch {};
+        element.setChildren(&.{ 2, 3 }) catch {};
+        element.setActions(&.{}) catch {};
+        element.setRect(std.mem.zeroes(accessibility.raw.ArkUI_AccessibleRect)) catch {};
+        var event = accessibility.Event.create() catch return;
+        defer event.deinit();
+        event.setType(0) catch {};
+        event.setText("announcement") catch {};
+        event.setFocusId(1) catch {};
+        event.setElement(element) catch {};
+        const provider = accessibility.Provider.fromRaw(handle);
+        var callbacks = std.mem.zeroes(accessibility.raw.ArkUI_AccessibilityProviderCallbacks);
+        provider.register(&callbacks) catch {};
+        provider.send(event, onAccessibilitySent) catch {};
+    }
+}
+fn onAccessibilitySent(_: i32) callconv(.c) void {}
+export fn checkWeb(request_handle: *web.raw.ArkWeb_ResourceRequest, handler_handle: *web.raw.ArkWeb_ResourceHandler) void {
+    const request = web.Request.fromRaw(request_handle);
+    const url = request.url(allocator) catch return;
+    allocator.free(url);
+    const method = request.method(allocator) catch return;
+    allocator.free(method);
+    _ = request.isMainFrame();
+    var response = web.Response.create() catch return;
+    defer response.deinit();
+    response.setStatus(200) catch {};
+    response.setMimeType("text/plain") catch {};
+    response.setCharset("UTF-8") catch {};
+    response.setHeader("Cache-Control", "no-cache", true) catch {};
+    const handler = web.ResourceHandler.fromRaw(handler_handle);
+    handler.respond(response) catch {};
+    handler.write("hello") catch {};
+    handler.finish() catch {};
+    handler.fail(-1) catch {};
+    var scheme = web.SchemeHandler.create() catch return;
+    defer scheme.deinit();
+    scheme.setCallbacks(null, null) catch {};
+    scheme.setUserData(null) catch {};
+    scheme.install("custom", "web") catch {};
+    web.clearHandlers("web") catch {};
+    const controller = web.Controller.load("web") catch return;
+    controller.refresh() catch {};
+    controller.runJavaScript(&std.mem.zeroes(web.raw.ArkWeb_JavaScriptObject)) catch {};
+}
+
+export fn checkOpenGtx() void {
+    if (comptime @import("check_options").compile_check_opengtx) {
+        const gtx = @import("opengtx");
+        var context = gtx.Context.create(null) catch return;
+        defer context.deinit() catch {};
+        context.configure(.{ .package_name = "org.example.compilecheck", .app_version = "1.0", .max_resolution = .{ .width = 1920, .height = 1080 } }) catch {};
+        context.activate() catch {};
+        context.frame(std.mem.zeroes(gtx.raw.OpenGTX_FrameRenderInfo)) catch {};
+        context.scene(gtx.raw.PLAYING, "playing", .{ .min = 30, .max = 60, .recommended = 60 }, .{ .width = 1920, .height = 1080 }) catch {};
+        context.network("127.0.0.1", .{ .total = 10, .up = 5, .down = 5 }) catch {};
+        context.deactivate() catch {};
+    }
+}

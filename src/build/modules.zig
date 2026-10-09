@@ -12,15 +12,58 @@ const Binding = struct {
     imports: []const []const u8 = &.{},
     cpp_bridge_sources: []const []const u8 = &.{},
     supports_napi: bool = false,
+    requires_hms: bool = false,
     default_api: ?u32 = null,
 };
 
 pub const AddAllOptions = struct {
     api: ?u32 = null,
     xcomponent_napi: bool = false,
+    opengtx: bool = false,
 };
 
 pub const items = [_]Binding{
+    .{
+        .name = "opengtx",
+        .root_source_file = "src/opengtx/opengtx.zig",
+        .header = "src/opengtx/ffi.h",
+        .sys_import = "opengtx_sys",
+        .system_libraries = &.{"opengtx"},
+        .requires_hms = true,
+        .default_api = 12,
+    },
+    .{
+        .name = "arkui",
+        .root_source_file = "src/arkui/arkui.zig",
+        .header = "src/arkui/ffi.h",
+        .sys_import = "arkui_sys",
+        .system_libraries = &.{"ace_ndk.z"},
+        .default_api = 12,
+    },
+    .{
+        .name = "arkui_input",
+        .root_source_file = "src/arkui_input/arkui_input.zig",
+        .header = "src/arkui_input/ffi.h",
+        .sys_import = "arkui_input_sys",
+        .system_libraries = &.{"ace_ndk.z"},
+        .default_api = 12,
+    },
+    .{
+        .name = "accessibility",
+        .root_source_file = "src/accessibility/accessibility.zig",
+        .header = "src/accessibility/ffi.h",
+        .sys_import = "accessibility_sys",
+        .system_libraries = &.{"ace_ndk.z"},
+        .default_api = 12,
+    },
+    .{
+        .name = "web",
+        .root_source_file = "src/web/web.zig",
+        .header = "src/web/ffi.h",
+        .sys_import = "web_sys",
+        .system_libraries = &.{"ohweb"},
+        .default_api = 12,
+    },
     .{
         .name = "jsvm",
         .root_source_file = "src/jsvm/jsvm.zig",
@@ -287,6 +330,7 @@ pub fn addAll(
         null;
 
     for (items) |binding| {
+        if (binding.requires_hms and !options.opengtx) continue;
         try addModule(
             b,
             target,
@@ -300,6 +344,7 @@ pub fn addAll(
         );
     }
     for (items) |binding| {
+        if (binding.requires_hms and !options.opengtx) continue;
         for (binding.imports) |name| {
             b.modules.get(binding.name).?.addImport(name, b.modules.get(name).?);
         }
@@ -317,7 +362,7 @@ fn addModule(
     xcomponent_napi: bool,
     binding: Binding,
 ) !void {
-    const sys = try translateHeader(b, target, optimize, binding.sys_import, binding.header);
+    const sys = try translateHeader(b, target, optimize, binding.sys_import, binding.header, binding.requires_hms);
     const imports = [_]std.Build.Module.Import{
         .{ .name = binding.sys_import, .module = sys },
         .{ .name = "ohos_zig_binding_api", .module = api_support },
@@ -332,7 +377,11 @@ fn addModule(
         .imports = &imports,
     });
     for (binding.system_libraries) |library| {
-        try ndk.configureModuleLink(b, public, target.result, library);
+        if (binding.requires_hms) {
+            try ndk.configureHmsModuleLink(b, public, target.result, library);
+        } else {
+            try ndk.configureModuleLink(b, public, target.result, library);
+        }
     }
     if (binding.cpp_bridge_sources.len != 0) {
         public.addCSourceFiles(.{
@@ -405,6 +454,7 @@ fn translateHeader(
     optimize: std.builtin.OptimizeMode,
     name: []const u8,
     header: []const u8,
+    requires_hms: bool,
 ) !*std.Build.Module {
     const translate = b.addTranslateC(.{
         .root_source_file = b.path(header),
@@ -412,5 +462,6 @@ fn translateHeader(
         .optimize = optimize,
     });
     try ndk.configureTranslateC(b, translate, target.result);
+    if (requires_hms) try ndk.configureHmsTranslateC(b, translate);
     return translate.addModule(name);
 }

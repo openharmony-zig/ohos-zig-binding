@@ -121,3 +121,27 @@ pub fn configureCppBridge(
     module.addSystemIncludePath(.{ .cwd_relative = paths.platform });
     module.linkSystemLibrary("c++", .{ .use_pkg_config = .no });
 }
+
+fn requireHmsNdkPath(build: *std.Build) ![]const u8 {
+    for ([_][]const u8{ "HMS_NDK_HOME", "HMS_SDK_HOME" }) |name| {
+        if (getEnvVarOptional(build, name)) |root| {
+            const native = try nativeFromSdkRoot(build, root);
+            const header = build.pathJoin(&.{ native, "sysroot", "usr", "include", "graphics_game_sdk", "opengtx_base.h" });
+            std.Io.Dir.cwd().access(build.graph.io, header, .{}) catch continue;
+            return native;
+        }
+    }
+    std.log.err("OpenGTX requires HMS_NDK_HOME (native SDK) or HMS_SDK_HOME (HMS SDK root).", .{});
+    return error.HmsNdkNotConfigured;
+}
+
+pub fn configureHmsTranslateC(build: *std.Build, translate: *std.Build.Step.TranslateC) !void {
+    const root = try requireHmsNdkPath(build);
+    translate.addSystemIncludePath(.{ .cwd_relative = build.pathJoin(&.{ root, "sysroot", "usr", "include" }) });
+}
+
+pub fn configureHmsModuleLink(build: *std.Build, module: *std.Build.Module, target: std.Target, library: []const u8) !void {
+    const root = try requireHmsNdkPath(build);
+    module.addLibraryPath(.{ .cwd_relative = build.pathJoin(&.{ root, "sysroot", "usr", "lib", platformDir(target) }) });
+    module.linkSystemLibrary(library, .{ .use_pkg_config = .no });
+}

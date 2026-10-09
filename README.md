@@ -8,6 +8,8 @@ The stock Zig distribution does not provide the required OpenHarmony target supp
 
 C bindings are created at build time via `addTranslateC`; the generated sys modules and required system libraries are wired through the Zig module graph.
 
+See [docs/module-coverage.md](docs/module-coverage.md) for reference coverage, ownership rules and verification.
+
 See [docs/adding-modules.md](docs/adding-modules.md) for how to add a new binding module.
 
 See [docs/editor-setup.md](docs/editor-setup.md) to configure the OpenHarmony SDK for IDE support.
@@ -16,6 +18,11 @@ See [docs/editor-setup.md](docs/editor-setup.md) to configure the OpenHarmony SD
 
 | Module | Description |
 |--------|-------------|
+| `arkui` | Owned nodes/dialogs, attributes, events and borrowed NodeContent |
+| `arkui_input` | Borrowed input events and checked pointer/history/key access |
+| `accessibility` | API 13 elements, events and borrowed provider callbacks |
+| `web` | ArkWeb controller, scheme handlers, responses and request views |
+| `opengtx` | Optional HMS context, configuration and frame/scene/network reporting |
 | `net_connection` | Network discovery, DNS results and callback registrations |
 | `net_stack` | TLS certificate verification, WebSocket and API 20 HTTP owners |
 | `camera` | Device discovery, capabilities, inputs and capture/preview sessions |
@@ -186,6 +193,9 @@ comptime {
 
 ## Environment
 
+Use an OpenHarmony 7.0 / API 26 native SDK to provide all headers and libraries in this package.
+The selected `-Dapi` controls wrapper availability; it does not select or download an SDK.
+
 Configure the OpenHarmony NDK via environment variables (see [docs/editor-setup.md](docs/editor-setup.md)).
 Pass `-Dapi=<level>` to control the OpenHarmony API level used by Zig wrapper guards. You can also set `.api = 12` directly in `build.zig`; the module registry default is `12`.
 
@@ -208,6 +218,21 @@ API 12 is the wrapper baseline. Wrapper APIs introduced in 12 or lower do not ne
 
 VSCode/Zed C header indexing uses `OHOS_NDK_HOME`; set it to the native SDK directory before opening the editor.
 
+## HMS OpenGTX
+
+OpenGTX is disabled by default. Enable it only for applications targeting HMS:
+
+```sh
+export HMS_SDK_HOME=/Applications/DevEco-Studio.app/Contents/sdk/default/hms
+# Alternatively set HMS_NDK_HOME to the HMS native directory.
+zig build -Dopengtx=true -Dapi=12 -Doptimize=safe
+```
+
+Both the OpenHarmony SDK and HMS SDK are required when enabled. In a consuming
+build, pass `.opengtx = true` to `b.dependency` and import its `opengtx` module.
+Keep configuration strings and callback state alive until `Context.deinit`.
+See [module coverage](docs/module-coverage.md#hms-opengtx-example) for a complete lifecycle example.
+
 ## Demo
 
 `examples/basic` is a small standalone N-API addon that imports `hilog` and `ability_access_control` from this package and exposes them through `zig-napi`:
@@ -228,7 +253,10 @@ integration, run from the repository root:
 zig build -Dtarget=aarch64-linux-ohos -Doptimize=safe -Dapi=12 -Dxcomponent_napi=true --summary all
 ```
 
-The root build and the example's XComponent check compile cross-target test
+The root build also compiles and links `tests/compile_usage.zig` into a disposable
+shared library, forcing representative method bodies and native symbols to resolve.
+Use `zig build check` to run this check alone. These fixtures require application
+state and must never be executed. The example's XComponent check also compiles cross-target test
 artifacts; they do not execute on the build host. Run the addon on an OpenHarmony
 device or emulator to exercise platform APIs.
 
