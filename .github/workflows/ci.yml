@@ -24,6 +24,11 @@ jobs:
         with:
           tag: '0.17.0'
 
+      - name: Test host-side ownership and argument checks
+        run: |
+          zig test src/support/ffi.zig -lc
+          zig test --dep opengtx --dep opengtx_sys -Mroot=tests/opengtx_test.zig --dep opengtx_sys --dep ohos_zig_binding_ffi -Mopengtx=src/opengtx/opengtx.zig -Mopengtx_sys=tests/mocks/opengtx.zig -Mohos_zig_binding_ffi=src/support/ffi.zig -lc
+
       - name: Check Zig syntax
         shell: bash
         run: |
@@ -44,21 +49,24 @@ jobs:
 
   ohos-build:
     runs-on: ubuntu-latest
-    name: Build for OpenHarmony (${{ matrix.target }}, ${{ matrix.optimize }})
+    name: Build for OpenHarmony (${{ matrix.target }}, ${{ matrix.optimize }}, API ${{ matrix.api }})
     strategy:
       fail-fast: false
       matrix:
         target: [aarch64-linux-ohos, arm-linux-ohoseabi, x86_64-linux-ohos]
         optimize: [debug, safe]
+        api: [12, 26]
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup OpenHarmony SDK
-        uses: openharmony-rs/setup-ohos-sdk@v0.2
+        uses: openharmony-rs/setup-ohos-sdk@v1.0.0
         with:
-          version: '5.0.0'
+          version: '7.0'
+          components: 'native'
+          mirror: true
 
       - name: Setup Zig for OpenHarmony
         uses: openharmony-zig/setup-zig-ohos@v0.1.0
@@ -74,11 +82,11 @@ jobs:
           test -d "$sdk_home/sysroot/usr/include" || test -d "$sdk_home/native/sysroot/usr/include"
 
       - name: Build root package
-        run: zig build -Dtarget=${{ matrix.target }} -Doptimize=${{ matrix.optimize }} -Dapi=12 --summary all
+        run: zig build -Dtarget=${{ matrix.target }} -Doptimize=${{ matrix.optimize }} -Dapi=${{ matrix.api }} --summary all
 
       - name: Build root package with XComponent N-API integration
-        run: zig build -Dtarget=${{ matrix.target }} -Doptimize=${{ matrix.optimize }} -Dapi=12 -Dxcomponent_napi=true --summary all
+        run: zig build -Dtarget=${{ matrix.target }} -Doptimize=${{ matrix.optimize }} -Dapi=${{ matrix.api }} -Dxcomponent_napi=true --summary all
 
       - name: Build examples/basic
         working-directory: examples/basic
-        run: zig build -Dtarget=${{ matrix.target }} -Doptimize=${{ matrix.optimize }} -Dapi=12 --summary all
+        run: zig build -Dtarget=${{ matrix.target }} -Doptimize=${{ matrix.optimize }} -Dapi=${{ matrix.api }} --summary all
