@@ -9,17 +9,230 @@ const Binding = struct {
     header: []const u8,
     sys_import: []const u8,
     system_libraries: []const []const u8,
+    imports: []const []const u8 = &.{},
     cpp_bridge_sources: []const []const u8 = &.{},
     supports_napi: bool = false,
+    requires_hms: bool = false,
     default_api: ?u32 = null,
 };
 
 pub const AddAllOptions = struct {
     api: ?u32 = null,
     xcomponent_napi: bool = false,
+    opengtx: bool = false,
 };
 
 pub const items = [_]Binding{
+    .{
+        .name = "opengtx",
+        .root_source_file = "src/opengtx/opengtx.zig",
+        .header = "src/opengtx/ffi.h",
+        .sys_import = "opengtx_sys",
+        .system_libraries = &.{"opengtx"},
+        .requires_hms = true,
+        .default_api = 12,
+    },
+    .{
+        .name = "arkui",
+        .root_source_file = "src/arkui/arkui.zig",
+        .header = "src/arkui/ffi.h",
+        .sys_import = "arkui_sys",
+        .system_libraries = &.{"ace_ndk.z"},
+        .default_api = 12,
+    },
+    .{
+        .name = "arkui_input",
+        .root_source_file = "src/arkui_input/arkui_input.zig",
+        .header = "src/arkui_input/ffi.h",
+        .sys_import = "arkui_input_sys",
+        .system_libraries = &.{"ace_ndk.z"},
+        .default_api = 12,
+    },
+    .{
+        .name = "accessibility",
+        .root_source_file = "src/accessibility/accessibility.zig",
+        .header = "src/accessibility/ffi.h",
+        .sys_import = "accessibility_sys",
+        .system_libraries = &.{"ace_ndk.z"},
+        .default_api = 12,
+    },
+    .{
+        .name = "web",
+        .root_source_file = "src/web/web.zig",
+        .header = "src/web/ffi.h",
+        .sys_import = "web_sys",
+        .system_libraries = &.{"ohweb"},
+        .default_api = 12,
+    },
+    .{
+        .name = "jsvm",
+        .root_source_file = "src/jsvm/jsvm.zig",
+        .header = "src/jsvm/ffi.h",
+        .sys_import = "jsvm_sys",
+        .system_libraries = &.{"jsvm"},
+        .default_api = 12,
+    },
+    .{
+        .name = "camera",
+        .root_source_file = "src/camera/camera.zig",
+        .header = "src/camera/ffi.h",
+        .sys_import = "camera_sys",
+        .system_libraries = &.{"ohcamera"},
+        .default_api = 12,
+    },
+    .{
+        .name = "image",
+        .root_source_file = "src/image/image.zig",
+        .header = "src/image/ffi.h",
+        .sys_import = "image_sys",
+        .system_libraries = &.{ "ohimage", "image_packer", "picture", "image_receiver", "image_source", "pixelmap", "image_ndk.z", "image_packer_ndk.z", "image_receiver_ndk.z", "image_source_ndk.z", "pixelmap_ndk.z" },
+        .default_api = 12,
+    },
+    .{
+        .name = "image_native",
+        .root_source_file = "src/image_native/image_native.zig",
+        .header = "src/image_native/ffi.h",
+        .sys_import = "image_native_sys",
+        .system_libraries = &.{ "image_ndk.z", "image_packer_ndk.z", "pixelmap_ndk.z", "image_receiver_ndk.z", "image_source_ndk.z", "image_source", "image_receiver", "pixelmap", "ohimage" },
+        .default_api = 12,
+    },
+    .{
+        .name = "net_connection",
+        .root_source_file = "src/net_connection/net_connection.zig",
+        .header = "src/net_connection/ffi.h",
+        .sys_import = "net_connection_sys",
+        .system_libraries = &.{"net_connection"},
+        .default_api = 12,
+    },
+    .{
+        .name = "net_stack",
+        .root_source_file = "src/net_stack/net_stack.zig",
+        .header = "src/net_stack/ffi.h",
+        .sys_import = "net_stack_sys",
+        .system_libraries = &.{ "net_http", "net_ssl", "net_websocket" },
+        .default_api = 12,
+    },
+    .{
+        .name = "asset",
+        .root_source_file = "src/asset/asset.zig",
+        .header = "src/asset/ffi.h",
+        .sys_import = "asset_sys",
+        .system_libraries = &.{"asset_ndk.z"},
+        .default_api = 12,
+    },
+    .{
+        .name = "huks",
+        .root_source_file = "src/huks/huks.zig",
+        .header = "src/huks/ffi.h",
+        .sys_import = "huks_sys",
+        .system_libraries = &.{"huks_ndk.z"},
+        .default_api = 12,
+    },
+    .{
+        .name = "udmf",
+        .root_source_file = "src/udmf/udmf.zig",
+        .header = "src/udmf/ffi.h",
+        .sys_import = "udmf_sys",
+        .system_libraries = &.{"udmf"},
+        .default_api = 12,
+    },
+    .{
+        .name = "pasteboard",
+        .imports = &.{"udmf"},
+        .root_source_file = "src/pasteboard/pasteboard.zig",
+        .header = "src/pasteboard/ffi.h",
+        .sys_import = "pasteboard_sys",
+        .system_libraries = &.{"pasteboard"},
+        .default_api = 12,
+    },
+    .{
+        .name = "resource_manager",
+        .root_source_file = "src/resource_manager/resource_manager.zig",
+        .header = "src/resource_manager/ffi.h",
+        .sys_import = "resource_manager_sys",
+        .system_libraries = &.{ "ohresmgr", "rawfile.z" },
+        .default_api = 12,
+    },
+    .{
+        .name = "sensor",
+        .root_source_file = "src/sensor/sensor.zig",
+        .header = "src/sensor/ffi.h",
+        .sys_import = "sensor_sys",
+        .system_libraries = &.{"ohsensor"},
+        .default_api = 12,
+    },
+    .{
+        .name = "init",
+        .root_source_file = "src/init/init.zig",
+        .header = "src/init/ffi.h",
+        .sys_import = "init_sys",
+        .system_libraries = &.{"deviceinfo_ndk.z"},
+        .default_api = 12,
+    },
+    .{
+        .name = "bundle",
+        .root_source_file = "src/bundle/bundle.zig",
+        .header = "src/bundle/ffi.h",
+        .sys_import = "bundle_sys",
+        .system_libraries = &.{"bundle_ndk.z"},
+        .default_api = 12,
+    },
+    .{
+        .name = "qos",
+        .root_source_file = "src/qos/qos.zig",
+        .header = "src/qos/ffi.h",
+        .sys_import = "qos_sys",
+        .system_libraries = &.{"qos"},
+        .default_api = 12,
+    },
+    .{
+        .name = "vibrator",
+        .root_source_file = "src/vibrator/vibrator.zig",
+        .header = "src/vibrator/ffi.h",
+        .sys_import = "vibrator_sys",
+        .system_libraries = &.{"ohvibrator.z"},
+        .default_api = 12,
+    },
+    .{
+        .name = "fileuri",
+        .root_source_file = "src/fileuri/fileuri.zig",
+        .header = "src/fileuri/ffi.h",
+        .sys_import = "fileuri_sys",
+        .system_libraries = &.{"ohfileuri"},
+        .default_api = 12,
+    },
+    .{
+        .name = "fileshare",
+        .root_source_file = "src/fileshare/fileshare.zig",
+        .header = "src/fileshare/ffi.h",
+        .sys_import = "fileshare_sys",
+        .system_libraries = &.{"ohfileshare"},
+        .default_api = 12,
+    },
+    .{
+        .name = "display",
+        .root_source_file = "src/display/display.zig",
+        .header = "src/display/ffi.h",
+        .sys_import = "display_sys",
+        .system_libraries = &.{"native_display_manager"},
+        .default_api = 12,
+    },
+    .{
+        .name = "native_display_soloist",
+        .root_source_file = "src/native_display_soloist/native_display_soloist.zig",
+        .header = "src/native_display_soloist/ffi.h",
+        .sys_import = "native_display_soloist_sys",
+        .system_libraries = &.{"native_display_soloist"},
+        .default_api = 12,
+    },
+    .{
+        .name = "native_buffer",
+        .root_source_file = "src/native_buffer/native_buffer.zig",
+        .header = "src/native_buffer/ffi.h",
+        .sys_import = "native_buffer_sys",
+        .system_libraries = &.{"native_buffer"},
+        .default_api = 12,
+    },
     .{
         .name = "ashmem",
         .root_source_file = "src/ashmem/ashmem.zig",
@@ -102,22 +315,39 @@ pub fn addAll(
         optimize,
         options.xcomponent_napi,
     );
+    const ffi_support = b.createModule(.{
+        .root_source_file = b.path("src/support/ffi.zig"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
     const napi_module = if (options.xcomponent_napi)
-        b.dependency("zig-napi", .{}).module("napi")
+        b.dependency("zig-napi", .{
+            .target = target,
+            .optimize = optimize,
+        }).module("napi")
     else
         null;
 
     for (items) |binding| {
+        if (binding.requires_hms and !options.opengtx) continue;
         try addModule(
             b,
             target,
             optimize,
             api_support,
             feature_support,
+            ffi_support,
             napi_module,
             options.xcomponent_napi,
             binding,
         );
+    }
+    for (items) |binding| {
+        if (binding.requires_hms and !options.opengtx) continue;
+        for (binding.imports) |name| {
+            b.modules.get(binding.name).?.addImport(name, b.modules.get(name).?);
+        }
     }
 }
 
@@ -127,15 +357,17 @@ fn addModule(
     optimize: std.builtin.OptimizeMode,
     api_support: *std.Build.Module,
     feature_support: *std.Build.Module,
+    ffi_support: *std.Build.Module,
     napi_module: ?*std.Build.Module,
     xcomponent_napi: bool,
     binding: Binding,
 ) !void {
-    const sys = try translateHeader(b, target, optimize, binding.sys_import, binding.header);
+    const sys = try translateHeader(b, target, optimize, binding.sys_import, binding.header, binding.requires_hms);
     const imports = [_]std.Build.Module.Import{
         .{ .name = binding.sys_import, .module = sys },
         .{ .name = "ohos_zig_binding_api", .module = api_support },
         .{ .name = "ohos_zig_binding_features", .module = feature_support },
+        .{ .name = "ohos_zig_binding_ffi", .module = ffi_support },
     };
 
     const public = b.addModule(binding.name, .{
@@ -145,7 +377,11 @@ fn addModule(
         .imports = &imports,
     });
     for (binding.system_libraries) |library| {
-        try ndk.configureModuleLink(b, public, target.result, library);
+        if (binding.requires_hms) {
+            try ndk.configureHmsModuleLink(b, public, target.result, library);
+        } else {
+            try ndk.configureModuleLink(b, public, target.result, library);
+        }
     }
     if (binding.cpp_bridge_sources.len != 0) {
         public.addCSourceFiles(.{
@@ -218,6 +454,7 @@ fn translateHeader(
     optimize: std.builtin.OptimizeMode,
     name: []const u8,
     header: []const u8,
+    requires_hms: bool,
 ) !*std.Build.Module {
     const translate = b.addTranslateC(.{
         .root_source_file = b.path(header),
@@ -225,5 +462,6 @@ fn translateHeader(
         .optimize = optimize,
     });
     try ndk.configureTranslateC(b, translate, target.result);
+    if (requires_hms) try ndk.configureHmsTranslateC(b, translate);
     return translate.addModule(name);
 }

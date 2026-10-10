@@ -2,8 +2,8 @@
 
 ## Prerequisites
 
-- Zig **0.16.0** or later
-- OpenHarmony NDK configured (see [editor-setup.md](editor-setup.md))
+- OpenHarmony-patched [Zig **0.17.0**](https://github.com/openharmony-zig/zig-patch/releases/tag/0.17.0)
+- OpenHarmony 7.0 / API 26 NDK configured (see [editor-setup.md](editor-setup.md))
 
 ## Project Layout
 
@@ -23,7 +23,7 @@ an empty `system_libraries` list. Their `ffi.h` should still be translated with
 the selected OpenHarmony sysroot so constants and syscall signatures match the
 target ABI.
 
-Sys bindings are **not** committed. `src/build/modules.zig` creates `<module>_sys` via `addTranslateC` at build time and attaches the required OpenHarmony system libraries to the wrapper module. The package's default build also compiles every registered wrapper as a cross-target test artifact, so new declarations cannot remain completely unchecked through Zig's lazy analysis.
+Sys bindings are **not** committed. `src/build/modules.zig` creates `<module>_sys` via `addTranslateC` at build time and attaches the required OpenHarmony system libraries to the wrapper module. The package's default build also compiles every registered wrapper as a cross-target test artifact, and links representative calls from `tests/compile_usage.zig` with `-z defs`. Add real method calls there: declaration-only tests do not force all function bodies through Zig's lazy analysis.
 
 Use `ffi.h` for the local C entry point instead of mirroring the NDK header name. For example, do not create `src/hilog/log.h` that includes `<hilog/log.h>`, because C/C++ indexers may resolve the include back to the local file and report a self-include.
 
@@ -96,7 +96,11 @@ Add an entry to `src/build/modules.zig`:
 },
 ```
 
-### 3. Update `README.md`
+### 3. Add representative calls to `tests/compile_usage.zig`
+
+Exercise acquisition, ordinary operations and release. Guard higher-API calls with the selected compile-time level. Never execute the fixture on a device.
+
+### 4. Update `README.md` and `docs/module-coverage.md`
 
 ## Config Interface
 
@@ -107,6 +111,8 @@ Add an entry to `src/build/modules.zig`:
 | `header` | C header used by `addTranslateC` |
 | `sys_import` | Import name used by the wrapper module |
 | `system_libraries` | OpenHarmony system libraries linked transitively through the module graph |
+| `imports` | Other public binding modules whose types must be shared, for example pasteboard importing udmf |
+| `requires_hms` | Register only when OpenGTX is enabled; use HMS headers/library search paths |
 | `supports_napi` | Whether the module receives the optional zig-napi import and N-API link library when `xcomponent_napi` is enabled |
 | `default_api` | Default API level used by wrapper guards when the caller does not pass `.api` or `-Dapi` |
 
@@ -119,4 +125,5 @@ Add an entry to `src/build/modules.zig`:
 - [ ] Wrapper APIs introduced after 12 call `comptime api.require("module.method", api_level)` at the top
 - [ ] Binding registry entry sets `default_api` when the module should not rely only on `-Dapi`
 - [ ] Register binding metadata in `src/build/modules.zig`
+- [ ] Public methods have representative compile/link calls and ownership documentation
 - [ ] `zig build` passes with NDK configured

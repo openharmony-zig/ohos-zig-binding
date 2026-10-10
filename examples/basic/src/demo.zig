@@ -43,7 +43,7 @@ pub fn configure_hilog() void {
 
 pub fn check_self_permission(permission: []u8) bool {
     const allocator = napi.globalAllocator();
-    const permission_z = allocator.dupeZ(u8, permission) catch return false;
+    const permission_z = allocator.dupeSentinel(u8, permission, 0) catch return false;
     defer allocator.free(permission_z);
 
     return ability_access_control.checkSelfPermission(permission_z);

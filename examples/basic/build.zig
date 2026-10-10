@@ -26,13 +26,13 @@ pub fn build(b: *std.Build) !void {
     });
 
     if (result.arm64) |arm64| {
-        addImports(b, optimize, api, arm64.root_module, napi);
+        addImports(b, optimize, api, arm64.root_module);
     }
     if (result.arm) |arm| {
-        addImports(b, optimize, api, arm.root_module, napi);
+        addImports(b, optimize, api, arm.root_module);
     }
     if (result.x64) |x64| {
-        addImports(b, optimize, api, x64.root_module, napi);
+        addImports(b, optimize, api, x64.root_module);
     }
 
     const dts = try napi_build.generateTypeDefinition(b, .{
@@ -48,8 +48,13 @@ fn addImports(
     optimize: std.builtin.OptimizeMode,
     api: u32,
     root_module: *std.Build.Module,
-    napi: *std.Build.Module,
 ) void {
+    // Share the target-specific N-API module with xcomponent so its Env/Object
+    // types are identical to the application's types.
+    const napi = b.dependency("zig-napi", .{
+        .target = root_module.resolved_target.?,
+        .optimize = optimize,
+    }).module("napi");
     const ohos_binding = b.dependency("ohos_zig_binding", .{
         .target = root_module.resolved_target.?,
         .optimize = optimize,

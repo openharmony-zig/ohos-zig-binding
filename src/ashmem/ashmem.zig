@@ -69,7 +69,7 @@ pub const Ashmem = struct {
             return error.SystemCallFailed;
         errdefer closeFd(descriptor);
 
-        var name_buffer = [_]u8{0} ** name_buffer_len;
+        var name_buffer: [name_buffer_len]u8 = @splat(0);
         @memcpy(name_buffer[0..name.len], name);
         if (retrySetName(descriptor, &name_buffer) < 0) {
             return error.SystemCallFailed;

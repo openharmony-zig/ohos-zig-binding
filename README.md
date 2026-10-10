@@ -1,8 +1,14 @@
 # ohos binding for zig
 
-OpenHarmony native bindings for Zig, exported as build-system modules (Zig 0.16+).
+OpenHarmony native bindings for Zig, exported as build-system modules (Zig 0.17.0).
+
+Use the OpenHarmony-patched [Zig 0.17.0 toolchain](https://github.com/openharmony-zig/zig-patch/releases/tag/0.17.0),
+as in zig-napi. Put it on `PATH` and verify that `zig version` prints `0.17.0`.
+The stock Zig distribution does not provide the required OpenHarmony target support.
 
 C bindings are created at build time via `addTranslateC`; the generated sys modules and required system libraries are wired through the Zig module graph.
+
+See [docs/module-coverage.md](docs/module-coverage.md) for reference coverage, ownership rules and verification.
 
 See [docs/adding-modules.md](docs/adding-modules.md) for how to add a new binding module.
 
@@ -12,6 +18,32 @@ See [docs/editor-setup.md](docs/editor-setup.md) to configure the OpenHarmony SD
 
 | Module | Description |
 |--------|-------------|
+| `arkui` | Owned nodes/dialogs, attributes, events and borrowed NodeContent |
+| `arkui_input` | Borrowed input events and checked pointer/history/key access |
+| `accessibility` | API 13 elements, events and borrowed provider callbacks |
+| `web` | ArkWeb controller, scheme handlers, responses and request views |
+| `opengtx` | Optional HMS context, configuration and frame/scene/network reporting |
+| `net_connection` | Network discovery, DNS results and callback registrations |
+| `net_stack` | TLS certificate verification, WebSocket and API 20 HTTP owners |
+| `camera` | Device discovery, capabilities, inputs and capture/preview sessions |
+| `image` | Legacy N-API image, source and borrowed pixelmap adapters |
+| `image_native` | Native decoding, pixelmaps, packing and image receivers |
+| `jsvm` | VM/environment scopes, script evaluation, values and references |
+| `asset` | Asset attributes, owned query results and authentication challenges |
+| `huks` | Key parameter sets, key operations and cryptographic sessions |
+| `udmf` | Unified data, records, plain text, HTML and hyperlinks |
+| `pasteboard` | API 13 clipboard access using unified data |
+| `resource_manager` | Raw files/directories and allocator-owned media resources |
+| `sensor` | Sensor discovery, event views and subscription lifecycle |
+| `init` | System capability queries |
+| `bundle` | Owned application info, app identifiers, and main element names |
+| `qos` | Thread QoS and API 20 Gewu sessions |
+| `vibrator` | Timed/custom vibration and cancellation |
+| `fileuri` | Checked path/URI conversion with allocator-owned results |
+| `fileshare` | Persistent file permission policies and owned per-policy errors |
+| `display` | Display metrics, cutouts, and listener ownership |
+| `native_display_soloist` | Frame scheduling with explicit callback teardown |
+| `native_buffer` | Reference-counted buffers and checked CPU mappings |
 | `ashmem` | Owned ashmem descriptors, safe create/attach/map/unmap, and checked byte access |
 | `hilog` | HiLog logging binding |
 | `ability_access_control` | Ability access control (permission check) binding |
@@ -33,8 +65,8 @@ Add as a dependency in `build.zig.zon`:
 ```zig
 .dependencies = .{
     .@"zig-napi" = .{
-        .url = "https://github.com/openharmony-zig/zig-napi/archive/refs/tags/0.1.0.tar.gz",
-        .hash = "zig_napi-0.1.0-H6Owa7sDBgBLhd-ooFFJIqt3CAGATY4sIYHopmSYkRDP",
+        .url = "https://github.com/openharmony-zig/zig-napi/archive/1667e3e2ee770d2dd7e565a610b870907bf12a7e.tar.gz",
+        .hash = "zig_napi-0.1.0-H6OwaxJhEABrP0eCKzd6HNpryI2K84tMksWYz4s9L3YU",
     },
     .@"ohos_zig_binding" = .{
         .path = "../ohos-zig-binding",
@@ -53,17 +85,19 @@ pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
     const api = ohos_binding_build.apiOption(b) orelse ohos_binding_build.default_api;
 
-    const zig_napi = b.dependency("zig-napi", .{});
-    const napi = zig_napi.module("napi");
-
     const result = try napi_build.nativeAddonBuild(b, .{
         .name = "hello",
         .root_module_options = .{
             .root_source_file = b.path("src/hello.zig"),
+            .optimize = optimize,
         },
     });
 
     if (result.arm64) |arm64| {
+        const napi = b.dependency("zig-napi", .{
+            .target = arm64.root_module.resolved_target.?,
+            .optimize = optimize,
+        }).module("napi");
         arm64.root_module.addImport("napi", napi);
         const ohos_binding = b.dependency("ohos_zig_binding", .{
             .target = arm64.root_module.resolved_target.?,
@@ -84,9 +118,14 @@ pub fn build(b: *std.Build) !void {
 ```
 
 `xcomponent_napi` is a build-function feature switch. It defaults to `false`,
-so applications that only use `XComponent.fromRaw` do not download zig-napi or
-link `ace_napi.z`. Set it to `true` in the `b.dependency` call above when the
+so applications that only use `XComponent.fromRaw` do not import zig-napi into
+XComponent or link `ace_napi.z`. Set it to `true` in the `b.dependency` call above when the
 application already uses zig-napi.
+
+Use the same zig-napi dependency revision, target, and optimization mode in the
+application and bindings. Zig 0.17 translates N-API headers for each target;
+sharing that module also keeps `xcomponent.Env` and `xcomponent.Object` identical
+to the application's types. See `examples/basic/build.zig` for the complete setup.
 
 With the feature enabled, initialize the non-owning wrapper directly from
 zig-napi's environment and exports definitions:
@@ -154,6 +193,9 @@ comptime {
 
 ## Environment
 
+Use an OpenHarmony 7.0 / API 26 native SDK to provide all headers and libraries in this package.
+The selected `-Dapi` controls wrapper availability; it does not select or download an SDK.
+
 Configure the OpenHarmony NDK via environment variables (see [docs/editor-setup.md](docs/editor-setup.md)).
 Pass `-Dapi=<level>` to control the OpenHarmony API level used by Zig wrapper guards. You can also set `.api = 12` directly in `build.zig`; the module registry default is `12`.
 
@@ -176,16 +218,47 @@ API 12 is the wrapper baseline. Wrapper APIs introduced in 12 or lower do not ne
 
 VSCode/Zed C header indexing uses `OHOS_NDK_HOME`; set it to the native SDK directory before opening the editor.
 
+## HMS OpenGTX
+
+OpenGTX is disabled by default. Enable it only for applications targeting HMS:
+
+```sh
+export HMS_SDK_HOME=/Applications/DevEco-Studio.app/Contents/sdk/default/hms
+# Alternatively set HMS_NDK_HOME to the HMS native directory.
+zig build -Dopengtx=true -Dapi=12 -Doptimize=safe
+```
+
+Both the OpenHarmony SDK and HMS SDK are required when enabled. In a consuming
+build, pass `.opengtx = true` to `b.dependency` and import its `opengtx` module.
+Keep configuration strings and callback state alive until `Context.deinit`.
+See [module coverage](docs/module-coverage.md#hms-opengtx-example) for a complete lifecycle example.
+
 ## Demo
 
 `examples/basic` is a small standalone N-API addon that imports `hilog` and `ability_access_control` from this package and exposes them through `zig-napi`:
 
 ```sh
 cd examples/basic
-zig build -Dtarget=aarch64-linux-ohos -Doptimize=ReleaseSafe -Dapi=12
+zig build -Dtarget=aarch64-linux-ohos -Doptimize=safe -Dapi=12
 ```
 
 The native addon is installed under `examples/basic/zig-out/`, and the generated TypeScript declarations are written to `examples/basic/index.d.ts`.
+
+Zig 0.17 optimization modes are `debug`, `safe`, `fast`, and `small`.
+The supported targets are `aarch64-linux-ohos`, `arm-linux-ohoseabi`, and
+`x86_64-linux-ohos`. To compile all bindings, including the optional N-API
+integration, run from the repository root:
+
+```sh
+zig build -Dtarget=aarch64-linux-ohos -Doptimize=safe -Dapi=12 -Dxcomponent_napi=true --summary all
+```
+
+The root build also compiles and links `tests/compile_usage.zig` into a disposable
+shared library, forcing representative method bodies and native symbols to resolve.
+Use `zig build check` to run this check alone. These fixtures require application
+state and must never be executed. The example's XComponent check also compiles cross-target test
+artifacts; they do not execute on the build host. Run the addon on an OpenHarmony
+device or emulator to exercise platform APIs.
 
 
 ## LICENSE

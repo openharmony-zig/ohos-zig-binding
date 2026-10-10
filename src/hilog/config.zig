@@ -20,6 +20,6 @@ pub fn setLogLevel(level: types.Level, strategy: types.PreferStrategy) void {
     comptime api.require("hilog.setLogLevel", 21);
     hilog.OH_LOG_SetLogLevel(
         raw.rawLevel(level),
-        @as(hilog.PreferStrategy, @intCast(@intFromEnum(strategy))),
+        @as(hilog.PreferStrategy, @intCast(@backingInt(strategy))),
     );
 }

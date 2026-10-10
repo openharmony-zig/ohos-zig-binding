@@ -47,8 +47,8 @@ pub const Bitmap = struct {
             width,
             height,
             row_bytes,
-            @intFromEnum(color_format),
-            @intFromEnum(alpha_format),
+            @backingInt(color_format),
+            @backingInt(alpha_format),
         ) orelse return error.BitmapUnavailable;
         return .{ .handle = handle };
     }
@@ -138,9 +138,9 @@ pub const FontManager = struct {
         const handle = raw.OH_OhosZig_DrawingFontMgrMatchFamilyStyle(
             self.handle,
             family.ptr,
-            @intFromEnum(style.weight),
-            @intFromEnum(style.width),
-            @intFromEnum(style.slant),
+            @backingInt(style.weight),
+            @backingInt(style.width),
+            @backingInt(style.slant),
         ) orelse return null;
         return .{ .handle = handle };
     }
@@ -154,9 +154,9 @@ pub const FontManager = struct {
         const handle = raw.OH_OhosZig_DrawingFontMgrMatchFamilyStyleCharacter(
             self.handle,
             family.ptr,
-            @intFromEnum(style.weight),
-            @intFromEnum(style.width),
-            @intFromEnum(style.slant),
+            @backingInt(style.weight),
+            @backingInt(style.width),
+            @backingInt(style.slant),
             @intCast(character),
         ) orelse return null;
         return .{ .handle = handle };
@@ -205,11 +205,11 @@ pub const Font = struct {
     }
 
     pub fn setHinting(self: *const Font, hinting: FontHinting) void {
-        raw.OH_OhosZig_DrawingFontSetHinting(self.handle, @intFromEnum(hinting));
+        raw.OH_OhosZig_DrawingFontSetHinting(self.handle, @backingInt(hinting));
     }
 
     pub fn setEdging(self: *const Font, edging: FontEdging) void {
-        raw.OH_OhosZig_DrawingFontSetEdging(self.handle, @intFromEnum(edging));
+        raw.OH_OhosZig_DrawingFontSetEdging(self.handle, @backingInt(edging));
     }
 
     pub fn metrics(self: *const Font) FontMetrics {
@@ -225,7 +225,7 @@ pub const Font = struct {
             self.handle,
             @ptrCast(text.ptr),
             text.len,
-            @intFromEnum(encoding),
+            @backingInt(encoding),
             &width,
         );
         if (result == 0) return null;
@@ -248,7 +248,7 @@ pub const TextBlob = struct {
             @ptrCast(text.ptr),
             text.len,
             font.handle,
-            @intFromEnum(encoding),
+            @backingInt(encoding),
         ) orelse return null;
         return .{ .handle = handle };
     }
@@ -261,9 +261,9 @@ pub const TextBlob = struct {
 };
 
 test "native drawing enum values match the C API" {
-    try std.testing.expectEqual(@as(i32, 4), @intFromEnum(ColorFormat.rgba8888));
-    try std.testing.expectEqual(@as(i32, 3), @intFromEnum(FontWeight.normal));
-    try std.testing.expectEqual(@as(i32, 5), @intFromEnum(FontWidth.normal));
+    try std.testing.expectEqual(@as(i32, 4), @backingInt(ColorFormat.rgba8888));
+    try std.testing.expectEqual(@as(i32, 3), @backingInt(FontWeight.normal));
+    try std.testing.expectEqual(@as(i32, 5), @backingInt(FontWidth.normal));
 }
 
 test {
