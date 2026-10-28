@@ -26,8 +26,9 @@ jobs:
 
       - name: Test host-side ownership and argument checks
         run: |
-          zig test src/support/ffi.zig -lc
-          zig test --dep opengtx --dep opengtx_sys -Mroot=tests/opengtx_test.zig --dep opengtx_sys --dep ohos_zig_binding_ffi -Mopengtx=src/opengtx/opengtx.zig -Mopengtx_sys=tests/mocks/opengtx.zig -Mohos_zig_binding_ffi=src/support/ffi.zig -lc
+          python3 tools/test_bindings.py
+          python3 tools/generate_native.py --verify
+          python3 -m unittest discover -s tools -p 'test_generate_native.py'
 
       - name: Check Zig syntax
         shell: bash
