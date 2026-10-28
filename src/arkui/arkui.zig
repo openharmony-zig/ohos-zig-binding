@@ -1,5 +1,8 @@
 //! Call on the UI thread. Node/dialog owners are move-only; detach nodes and
 //! unregister callbacks before disposing them. Children are independently owned.
+pub const native = @import("native.zig");
+pub const interfaces = @import("interfaces.zig");
+pub const owned = @import("owned.zig");
 const ffi = @import("ohos_zig_binding_ffi");
 pub const raw = @import("arkui_sys");
 pub const Error = ffi.Error;

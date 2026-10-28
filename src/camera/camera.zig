@@ -1,4 +1,5 @@
 //! Move-only native owners; release children before their parents. Raw APIs remain available.
+pub const native = @import("native.zig");
 const ffi = @import("ohos_zig_binding_ffi");
 pub const raw = @import("camera_sys");
 pub const Error = ffi.Error;

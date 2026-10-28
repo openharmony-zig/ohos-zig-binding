@@ -1,3 +1,4 @@
+pub const native = @import("native.zig");
 const std = @import("std");
 const api = @import("ohos_zig_binding_api");
 

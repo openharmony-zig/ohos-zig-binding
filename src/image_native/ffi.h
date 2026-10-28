@@ -9,3 +9,5 @@
 #include <multimedia/image_framework/image/image_source_native.h>
 #include <multimedia/image_framework/image/picture_native.h>
 #include <multimedia/image_framework/image/pixelmap_native.h>
+
+#include "native.h"

@@ -7,3 +7,5 @@
 #include <database/udmf/udmf_meta.h>
 #include <database/udmf/uds.h>
 #include <database/udmf/utd.h>
+
+#include "native.h"

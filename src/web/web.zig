@@ -1,5 +1,7 @@
 //! ArkWeb UI-thread helpers. Native callback arguments are borrowed unless the
 //! application explicitly takes ownership. Keep async buffers/state alive.
+pub const native = @import("native.zig");
+pub const interfaces = @import("interfaces.zig");
 const std = @import("std");
 const ffi = @import("ohos_zig_binding_ffi");
 pub const raw = @import("web_sys");
