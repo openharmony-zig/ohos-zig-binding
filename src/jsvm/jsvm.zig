@@ -1,5 +1,6 @@
 //! JSVM owners are move-only and thread-confined. Enter VM, environment and
 //! handle scopes in that order; close them in reverse order before parents.
+pub const native = @import("native.zig");
 const std = @import("std");
 const ffi = @import("ohos_zig_binding_ffi");
 pub const raw = @import("jsvm_sys");

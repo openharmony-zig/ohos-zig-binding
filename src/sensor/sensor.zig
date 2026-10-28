@@ -1,3 +1,4 @@
+pub const native = @import("native.zig");
 const std = @import("std");
 const ffi = @import("ohos_zig_binding_ffi");
 pub const raw = @import("sensor_sys");

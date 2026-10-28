@@ -4,3 +4,5 @@
 #include <stdint.h>
 #include <network/netmanager/net_connection_type.h>
 #include <network/netmanager/net_connection.h>
+
+#include "native.h"

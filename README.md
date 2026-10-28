@@ -10,6 +10,12 @@ C bindings are created at build time via `addTranslateC`; the generated sys modu
 
 See [docs/module-coverage.md](docs/module-coverage.md) for reference coverage, ownership rules and verification.
 
+All reference modules are audited in [native capability coverage](docs/native-capabilities.md).
+The extension namespaces provide 1,540 additional API-checked native functions,
+60 resource owners and 95 ArkUI/ArkWeb interface-table methods. Use `module.native`,
+`module.owned`, and `arkui.interfaces` / `web.interfaces` alongside the existing
+workflow adapters; see the guide for ownership and regeneration details.
+
 See [docs/adding-modules.md](docs/adding-modules.md) for how to add a new binding module.
 
 See [docs/editor-setup.md](docs/editor-setup.md) to configure the OpenHarmony SDK for IDE support.

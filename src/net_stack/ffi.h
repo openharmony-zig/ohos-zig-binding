@@ -16,3 +16,5 @@ typedef struct WebSocket_CloseResult WebSocket_CloseResult;
 typedef struct WebSocket_ErrorResult WebSocket_ErrorResult;
 #include <network/netstack/net_websocket_type.h>
 #include <network/netstack/net_websocket.h>
+
+#include "native.h"

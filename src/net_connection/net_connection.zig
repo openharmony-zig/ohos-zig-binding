@@ -1,4 +1,5 @@
 //! Network handles are values. Callback storage must outlive its registration.
+pub const native = @import("native.zig");
 const ffi = @import("ohos_zig_binding_ffi");
 pub const raw = @import("net_connection_sys");
 pub const Error = ffi.Error;

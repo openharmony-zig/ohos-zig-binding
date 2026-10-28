@@ -10,3 +10,5 @@
 #include <inputmethod/inputmethod_text_config_capi.h>
 #include <inputmethod/inputmethod_text_editor_proxy_capi.h>
 #include <inputmethod/inputmethod_types_capi.h>
+
+#include "native.h"

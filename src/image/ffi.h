@@ -12,3 +12,5 @@ typedef struct OhosPixelMapCreateOps OhosPixelMapCreateOps;
  * Use the API 10+ pixel-map MDK declarations above. */
 #include <multimedia/image_framework/image_receiver_mdk.h>
 #include <multimedia/image_framework/image_source_mdk.h>
+
+#include "native.h"

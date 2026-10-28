@@ -1,4 +1,7 @@
 //! Compile/link fixtures only. Never execute: many native APIs need app/UI state.
+comptime {
+    _ = @import("native_compile_usage.zig");
+}
 const std = @import("std");
 const level = @import("check_options").compile_check_api;
 const allocator = std.heap.page_allocator;
@@ -225,6 +228,15 @@ export fn checkResources(env: resources.raw.napi_env, value: resources.raw.napi_
     _ = file.size() catch return;
     _ = file.offset() catch return;
     _ = file.remaining() catch return;
+    var descriptor = file.descriptor() catch return;
+    _ = descriptor.get() catch return;
+    descriptor.deinit() catch {};
+    var drawable = manager.drawable(1, 0, 0) catch return;
+    drawable.deinit();
+    var named_drawable = manager.drawableByName("icon", 0, 0) catch return;
+    named_drawable.deinit();
+    const named_base64 = manager.mediaBase64ByName(allocator, "test", 0) catch return;
+    allocator.free(named_base64);
     const media = manager.media(allocator, 1, 0) catch return;
     allocator.free(media);
     const named = manager.mediaByName(allocator, "test", 0) catch return;
@@ -531,5 +543,47 @@ export fn checkOpenGtx() void {
         context.scene(gtx.raw.PLAYING, "playing", .{ .min = 30, .max = 60, .recommended = 60 }, .{ .width = 1920, .height = 1080 }) catch {};
         context.network("127.0.0.1", .{ .total = 10, .up = 5, .down = 5 }) catch {};
         context.deactivate() catch {};
+    }
+}
+
+export fn checkUdmfReadback(pixels: *images.raw.OH_PixelmapNative) void {
+    var data = udmf.Data.create() catch return;
+    defer data.deinit();
+    var record = udmf.Record.create() catch return;
+    defer record.deinit();
+    const view = record.view() catch return;
+    var text = view.plainText() catch return;
+    text.deinit();
+    var html = view.html() catch return;
+    html.deinit();
+    var link = view.hyperlink() catch return;
+    link.deinit();
+    _ = view.generalEntry("general.text") catch return;
+    data.addRecord(record) catch {};
+    const records = data.records() catch return;
+    _ = records.count();
+    _ = records.get(0) catch return;
+    var descriptor = udmf.TypeDescriptor.create("general.plain-text") catch return;
+    defer descriptor.deinit();
+    _ = descriptor.typeId() catch return;
+    _ = descriptor.equals(descriptor) catch return;
+    _ = udmf.TypeDescriptor.isLower("general.plain-text", "general.text");
+    _ = udmf.TypeDescriptor.isHigher("general.text", "general.plain-text");
+    _ = udmf.TypeDescriptor.belongsTo("general.plain-text", "general.text");
+    if (comptime level >= 13) {
+        _ = data.record(0) catch return;
+        _ = data.isLocal() catch return;
+        var primary_text = data.primaryPlainText() catch return;
+        primary_text.deinit();
+        var primary_html = data.primaryHtml() catch return;
+        primary_html.deinit();
+        var value = udmf.PixelMap.create() catch return;
+        defer value.deinit();
+        value.set(.{ .handle = pixels }) catch {};
+        value.copyTo(.{ .handle = pixels }) catch {};
+        _ = value.typeId() catch return;
+        record.addPixelMap(value) catch {};
+        var loaded = view.pixelMap() catch return;
+        loaded.deinit();
     }
 }

@@ -1,5 +1,6 @@
 //! API 13 accessibility helpers. Owned information objects are move-only;
 //! callback-populated element views and provider handles are borrowed.
+pub const native = @import("native.zig");
 const ffi = @import("ohos_zig_binding_ffi");
 const api = @import("ohos_zig_binding_api");
 pub const raw = @import("accessibility_sys");

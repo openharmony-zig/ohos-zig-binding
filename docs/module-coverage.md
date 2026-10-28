@@ -8,6 +8,10 @@ Together with the original eight modules, the registry exports 33 OpenHarmony
 modules and one optional HMS module. The Rust-only `enum_derive` helper has no
 native Zig counterpart.
 
+[Native capability coverage](native-capabilities.md) documents the complete
+reference-symbol audit, generated extensions, resource owners and API tables.
+It also lists the remaining differences from Rust-specific convenience APIs.
+
 The adapters cover the workflows below. They do not reproduce every Rust builder,
 ArkUI component DSL, or convenience method. Each new module exports `raw`, and
 its `<module>_sys` build module exposes translated SDK declarations for additional

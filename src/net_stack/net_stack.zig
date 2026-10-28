@@ -1,5 +1,6 @@
 //! Move-only network owners. Serialize operations and teardown; callbacks and
 //! buffers supplied to asynchronous operations must survive their completion.
+pub const native = @import("native.zig");
 const ffi = @import("ohos_zig_binding_ffi");
 const api = @import("ohos_zig_binding_api");
 pub const raw = @import("net_stack_sys");

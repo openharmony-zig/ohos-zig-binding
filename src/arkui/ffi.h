@@ -13,3 +13,5 @@
 #include <arkui/native_node_napi.h>
 #include <arkui/native_type.h>
 #include <arkui/styled_string.h>
+
+#include "native.h"
