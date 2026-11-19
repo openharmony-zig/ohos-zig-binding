@@ -9,3 +9,5 @@
 #include <ohcamera/preview_output.h>
 #include <ohcamera/photo_output.h>
 #include <ohcamera/photo_native.h>
+
+#include "native.h"

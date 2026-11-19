@@ -1,0 +1,39 @@
+//! Generated resource owners. Do not copy acquired owners.
+//! Stop callbacks and detach dependent objects before deinit.
+const ffi = @import("ohos_zig_binding_ffi");
+const api = @import("ohos_zig_binding_api");
+const raw = @import("arkui_sys");
+
+pub const AccessibilityState = ffi.Resource(raw.OH_ArkUI_AccessibilityState_Create, raw.OH_ArkUI_AccessibilityState_Dispose, api, "arkui.owned.AccessibilityState", 12);
+pub const AccessibilityValue = ffi.Resource(raw.OH_ArkUI_AccessibilityValue_Create, raw.OH_ArkUI_AccessibilityValue_Dispose, api, "arkui.owned.AccessibilityValue", 12);
+pub const AlignmentRuleOption = ffi.Resource(raw.OH_ArkUI_AlignmentRuleOption_Create, raw.OH_ArkUI_AlignmentRuleOption_Dispose, api, "arkui.owned.AlignmentRuleOption", 12);
+pub const AnimateOption = ffi.Resource(raw.OH_ArkUI_AnimateOption_Create, raw.OH_ArkUI_AnimateOption_Dispose, api, "arkui.owned.AnimateOption", 12);
+pub const AnimatorOption = ffi.Resource(raw.OH_ArkUI_AnimatorOption_Create, raw.OH_ArkUI_AnimatorOption_Dispose, api, "arkui.owned.AnimatorOption", 12);
+pub const BarrierOption = ffi.Resource(raw.OH_ArkUI_BarrierOption_Create, raw.OH_ArkUI_BarrierOption_Dispose, api, "arkui.owned.BarrierOption", 12);
+pub const CrossLanguageOption = ffi.Resource(raw.OH_ArkUI_CrossLanguageOption_Create, raw.OH_ArkUI_CrossLanguageOption_Destroy, api, "arkui.owned.CrossLanguageOption", 15);
+pub const CustomSpanDrawInfo = ffi.Resource(raw.OH_ArkUI_CustomSpanDrawInfo_Create, raw.OH_ArkUI_CustomSpanDrawInfo_Dispose, api, "arkui.owned.CustomSpanDrawInfo", 12);
+pub const CustomSpanMeasureInfo = ffi.Resource(raw.OH_ArkUI_CustomSpanMeasureInfo_Create, raw.OH_ArkUI_CustomSpanMeasureInfo_Dispose, api, "arkui.owned.CustomSpanMeasureInfo", 12);
+pub const CustomSpanMetrics = ffi.Resource(raw.OH_ArkUI_CustomSpanMetrics_Create, raw.OH_ArkUI_CustomSpanMetrics_Dispose, api, "arkui.owned.CustomSpanMetrics", 12);
+pub const EmbeddedComponentOption = ffi.Resource(raw.OH_ArkUI_EmbeddedComponentOption_Create, raw.OH_ArkUI_EmbeddedComponentOption_Dispose, api, "arkui.owned.EmbeddedComponentOption", 20);
+pub const GridLayoutOptions = ffi.Resource(raw.OH_ArkUI_GridLayoutOptions_Create, raw.OH_ArkUI_GridLayoutOptions_Dispose, api, "arkui.owned.GridLayoutOptions", 22);
+pub const GuidelineOption = ffi.Resource(raw.OH_ArkUI_GuidelineOption_Create, raw.OH_ArkUI_GuidelineOption_Dispose, api, "arkui.owned.GuidelineOption", 12);
+pub const KeyframeAnimateOption = ffi.Resource(raw.OH_ArkUI_KeyframeAnimateOption_Create, raw.OH_ArkUI_KeyframeAnimateOption_Dispose, api, "arkui.owned.KeyframeAnimateOption", 12);
+pub const ListChildrenMainSizeOption = ffi.Resource(raw.OH_ArkUI_ListChildrenMainSizeOption_Create, raw.OH_ArkUI_ListChildrenMainSizeOption_Dispose, api, "arkui.owned.ListChildrenMainSizeOption", 12);
+pub const ListItemSwipeActionItem = ffi.Resource(raw.OH_ArkUI_ListItemSwipeActionItem_Create, raw.OH_ArkUI_ListItemSwipeActionItem_Dispose, api, "arkui.owned.ListItemSwipeActionItem", 12);
+pub const ListItemSwipeActionOption = ffi.Resource(raw.OH_ArkUI_ListItemSwipeActionOption_Create, raw.OH_ArkUI_ListItemSwipeActionOption_Dispose, api, "arkui.owned.ListItemSwipeActionOption", 12);
+pub const PixelRoundPolicy = ffi.Resource(raw.OH_ArkUI_PixelRoundPolicy_Create, raw.OH_ArkUI_PixelRoundPolicy_Dispose, api, "arkui.owned.PixelRoundPolicy", 21);
+pub const PositionEdges = ffi.Resource(raw.OH_ArkUI_PositionEdges_Create, raw.OH_ArkUI_PositionEdges_Dispose, api, "arkui.owned.PositionEdges", 21);
+pub const ProgressLinearStyleOption = ffi.Resource(raw.OH_ArkUI_ProgressLinearStyleOption_Create, raw.OH_ArkUI_ProgressLinearStyleOption_Destroy, api, "arkui.owned.ProgressLinearStyleOption", 15);
+pub const ShowCounterConfig = ffi.Resource(raw.OH_ArkUI_ShowCounterConfig_Create, raw.OH_ArkUI_ShowCounterConfig_Dispose, api, "arkui.owned.ShowCounterConfig", 22);
+pub const StyledString = ffi.Resource(raw.OH_ArkUI_StyledString_Create, raw.OH_ArkUI_StyledString_Destroy, api, "arkui.owned.StyledString", 12);
+pub const StyledString_Descriptor = ffi.Resource(raw.OH_ArkUI_StyledString_Descriptor_Create, raw.OH_ArkUI_StyledString_Descriptor_Destroy, api, "arkui.owned.StyledString_Descriptor", 14);
+pub const SwiperArrowStyle = ffi.Resource(raw.OH_ArkUI_SwiperArrowStyle_Create, raw.OH_ArkUI_SwiperArrowStyle_Destroy, api, "arkui.owned.SwiperArrowStyle", 19);
+pub const SwiperDigitIndicator = ffi.Resource(raw.OH_ArkUI_SwiperDigitIndicator_Create, raw.OH_ArkUI_SwiperDigitIndicator_Destroy, api, "arkui.owned.SwiperDigitIndicator", 19);
+pub const SwiperIndicator = ffi.Resource(raw.OH_ArkUI_SwiperIndicator_Create, raw.OH_ArkUI_SwiperIndicator_Dispose, api, "arkui.owned.SwiperIndicator", 12);
+pub const TextCascadePickerRangeContentArray = ffi.Resource(raw.OH_ArkUI_TextCascadePickerRangeContentArray_Create, raw.OH_ArkUI_TextCascadePickerRangeContentArray_Destroy, api, "arkui.owned.TextCascadePickerRangeContentArray", 19);
+pub const TextEditMenuOptions = ffi.Resource(raw.OH_ArkUI_TextEditMenuOptions_Create, raw.OH_ArkUI_TextEditMenuOptions_Dispose, api, "arkui.owned.TextEditMenuOptions", 22);
+pub const TextMenuItem = ffi.Resource(raw.OH_ArkUI_TextMenuItem_Create, raw.OH_ArkUI_TextMenuItem_Dispose, api, "arkui.owned.TextMenuItem", 22);
+pub const TextPickerRangeContentArray = ffi.Resource(raw.OH_ArkUI_TextPickerRangeContentArray_Create, raw.OH_ArkUI_TextPickerRangeContentArray_Destroy, api, "arkui.owned.TextPickerRangeContentArray", 19);
+pub const TextSelectionMenuOptions = ffi.Resource(raw.OH_ArkUI_TextSelectionMenuOptions_Create, raw.OH_ArkUI_TextSelectionMenuOptions_Dispose, api, "arkui.owned.TextSelectionMenuOptions", 22);
+pub const VisibleAreaEventOptions = ffi.Resource(raw.OH_ArkUI_VisibleAreaEventOptions_Create, raw.OH_ArkUI_VisibleAreaEventOptions_Dispose, api, "arkui.owned.VisibleAreaEventOptions", 17);
+pub const WaterFlowSectionOption = ffi.Resource(raw.OH_ArkUI_WaterFlowSectionOption_Create, raw.OH_ArkUI_WaterFlowSectionOption_Dispose, api, "arkui.owned.WaterFlowSectionOption", 12);

@@ -8,3 +8,5 @@
 #include <web/arkweb_scheme_handler.h>
 #include <web/arkweb_type.h>
 #include <web/native_interface_arkweb.h>
+
+#include "native.h"

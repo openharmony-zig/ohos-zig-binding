@@ -93,7 +93,7 @@ pub const items = [_]Binding{
         .root_source_file = "src/image_native/image_native.zig",
         .header = "src/image_native/ffi.h",
         .sys_import = "image_native_sys",
-        .system_libraries = &.{ "image_ndk.z", "image_packer_ndk.z", "pixelmap_ndk.z", "image_receiver_ndk.z", "image_source_ndk.z", "image_source", "image_receiver", "pixelmap", "ohimage" },
+        .system_libraries = &.{ "image_common", "picture", "image_packer", "image_ndk.z", "image_packer_ndk.z", "pixelmap_ndk.z", "image_receiver_ndk.z", "image_source_ndk.z", "image_source", "image_receiver", "pixelmap", "ohimage" },
         .default_api = 12,
     },
     .{
@@ -130,6 +130,7 @@ pub const items = [_]Binding{
     },
     .{
         .name = "udmf",
+        .imports = &.{"image_native"},
         .root_source_file = "src/udmf/udmf.zig",
         .header = "src/udmf/ffi.h",
         .sys_import = "udmf_sys",
@@ -150,7 +151,7 @@ pub const items = [_]Binding{
         .root_source_file = "src/resource_manager/resource_manager.zig",
         .header = "src/resource_manager/ffi.h",
         .sys_import = "resource_manager_sys",
-        .system_libraries = &.{ "ohresmgr", "rawfile.z" },
+        .system_libraries = &.{ "ohresmgr", "rawfile.z", "ace_ndk.z" },
         .default_api = 12,
     },
     .{

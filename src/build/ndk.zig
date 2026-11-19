@@ -107,6 +107,9 @@ pub fn configureTranslateC(
     const paths = try ndkIncludePaths(build, target);
     translate_c.addSystemIncludePath(.{ .cwd_relative = paths.basic });
     translate_c.addSystemIncludePath(.{ .cwd_relative = paths.platform });
+    // Fortify's overloaded C inline definitions are not translatable by Zig.
+    // This only affects header translation, not application C/C++ compilation.
+    translate_c.defineCMacro("_FORTIFY_SOURCE", "0");
 }
 
 /// Configure a module that contains a C++ bridge for an OpenHarmony header

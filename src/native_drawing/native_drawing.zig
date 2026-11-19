@@ -1,3 +1,5 @@
+pub const native = @import("native.zig");
+pub const owned = @import("owned.zig");
 const std = @import("std");
 
 pub const raw = @import("native_drawing_sys");

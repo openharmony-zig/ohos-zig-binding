@@ -1,6 +1,8 @@
+pub const native = @import("native.zig");
+pub const owned = @import("owned.zig");
 const std = @import("std");
 
-const raw = @import("input_method_sys");
+pub const raw = @import("input_method_sys");
 
 pub const AttachOptionsHandle = raw.InputMethod_AttachOptions;
 pub const EnterKeyType = raw.InputMethod_EnterKeyType;

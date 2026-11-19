@@ -7,3 +7,7 @@
 #include <rawfile/raw_dir.h>
 #include <rawfile/raw_file.h>
 #include <rawfile/raw_file_manager.h>
+
+#include <arkui/drawable_descriptor.h>
+
+#include "native.h"

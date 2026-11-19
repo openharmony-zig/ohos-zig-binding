@@ -1,4 +1,5 @@
 //! Views borrow the event for the duration of the native callback only.
+pub const native = @import("native.zig");
 const ffi = @import("ohos_zig_binding_ffi");
 const api = @import("ohos_zig_binding_api");
 pub const raw = @import("arkui_input_sys");

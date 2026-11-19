@@ -1,3 +1,4 @@
+pub const native = @import("native.zig");
 const std = @import("std");
 const ffi = @import("ohos_zig_binding_ffi");
 pub const raw = @import("resource_manager_sys");
@@ -55,6 +56,30 @@ pub const ResourceManager = struct {
         if (value == null) return error.UnexpectedNull;
         return allocator.dupe(u8, value[0..try ffi.count(usize, len)]);
     }
+    pub fn mediaBase64ByName(self: ResourceManager, allocator: std.mem.Allocator, name: [:0]const u8, density: u32) Error![]u8 {
+        var value: [*c]u8 = null;
+        var len: u64 = 0;
+        const status = raw.OH_ResourceManager_GetMediaBase64DataByName(self.handle orelse return error.InvalidHandle, name.ptr, &value, &len, density);
+        defer std.c.free(value);
+        try ffi.check(status);
+        if (len == 0) return allocator.alloc(u8, 0);
+        if (value == null) return error.UnexpectedNull;
+        return allocator.dupe(u8, value[0..try ffi.count(usize, len)]);
+    }
+    pub fn drawable(self: ResourceManager, id: u32, density: u32, icon_type: u32) Error!Drawable {
+        var value: ?*raw.ArkUI_DrawableDescriptor = null;
+        const status = raw.OH_ResourceManager_GetDrawableDescriptorData(self.handle orelse return error.InvalidHandle, id, &value, density, icon_type);
+        errdefer if (value) |v| raw.OH_ArkUI_DrawableDescriptor_Dispose(v);
+        try ffi.check(status);
+        return .{ .handle = value orelse return error.UnexpectedNull };
+    }
+    pub fn drawableByName(self: ResourceManager, name: [:0]const u8, density: u32, icon_type: u32) Error!Drawable {
+        var value: ?*raw.ArkUI_DrawableDescriptor = null;
+        const status = raw.OH_ResourceManager_GetDrawableDescriptorDataByName(self.handle orelse return error.InvalidHandle, name.ptr, &value, density, icon_type);
+        errdefer if (value) |v| raw.OH_ArkUI_DrawableDescriptor_Dispose(v);
+        try ffi.check(status);
+        return .{ .handle = value orelse return error.UnexpectedNull };
+    }
 };
 
 /// Owns a directory cursor, borrowing the parent ResourceManager lifetime.
@@ -106,8 +131,36 @@ pub const RawFile = struct {
         if (result < 0) return error.NativeCallFailed;
         return @intCast(result);
     }
+    /// Owns the descriptor, offset and length of the file's region in the HAP.
+    /// Release the descriptor before closing this file or its manager.
+    pub fn descriptor(self: RawFile) Error!FileDescriptor {
+        var value = std.mem.zeroes(raw.RawFileDescriptor64);
+        if (!raw.OH_ResourceManager_GetRawFileDescriptor64(self.handle orelse return error.InvalidHandle, &value)) return error.NativeCallFailed;
+        return .{ .value = value };
+    }
     pub fn deinit(self: *RawFile) void {
         if (self.handle) |handle| raw.OH_ResourceManager_CloseRawFile64(handle);
+        self.handle = null;
+    }
+};
+
+/// Do not copy after acquisition. A failed release can be retried.
+pub const FileDescriptor = struct {
+    value: ?raw.RawFileDescriptor64,
+    pub fn get(self: FileDescriptor) Error!raw.RawFileDescriptor64 {
+        return self.value orelse error.InvalidHandle;
+    }
+    pub fn deinit(self: *FileDescriptor) Error!void {
+        const value = self.value orelse return;
+        if (!raw.OH_ResourceManager_ReleaseRawFileDescriptor64(&value)) return error.NativeCallFailed;
+        self.value = null;
+    }
+};
+
+pub const Drawable = struct {
+    handle: ?*raw.ArkUI_DrawableDescriptor,
+    pub fn deinit(self: *Drawable) void {
+        if (self.handle) |handle| raw.OH_ArkUI_DrawableDescriptor_Dispose(handle);
         self.handle = null;
     }
 };
